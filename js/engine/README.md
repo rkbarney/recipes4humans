@@ -7,7 +7,7 @@ Pure functions, no browser or network code. Types are in `types.js`. The pipelin
     (ingredients, actions) -> matchIngredients -> { mentions, collective, flags }
     (ingredients, actions, mentions) -> resolveAmounts -> { ingredients, actions, flags }
     (ingredients, actions) -> extractPrep -> { prep, cook }
-    (prep, cook) -> placeInWindows -> { prep, cook }
+    (prep, cook) -> placeInWindows -> { prep, cook, deferred }
 
 `rewriteParts` concatenates the flags of all stages, then returns `{ ingredients, prep, cook, flags }` (a `Rewrite`; `ingredients` are the `ParsedIngredient`s with extra fields allowed). `rewrite(text)` first splits sections by headings, strips bullets and step numbers, then calls `rewriteParts`.
 
@@ -20,7 +20,7 @@ Stages 1 and 2 are independent and can be built in parallel; stages 3 to 6 consu
 3. `matchIngredients(ingredients, actions)`. A `Mention` points into the action `text` (offsets), may carry a `prepWord`, a `stated` amount already in the text, and a `quantifier`. Collective words ("the spices") go in `collective`, not `mentions`.
 4. `resolveAmounts(ingredients, actions, mentions)`. Fills `portion.usedIn`, `action.uses`, inserts amounts into `action.text`. Everything it cannot resolve is flagged, not guessed.
 5. `extractPrep(ingredients, actions)`. Prep action ids are `p1..pN`; `prep` is ordered as described in the spec, `cook` keeps the order of the input actions.
-6. `placeInWindows(prep, cook)`. Sets `kind: 'waiting'` on window actions, fills `meanwhile`, and removes placed actions from `prep`. Placed prep actions are not counted in the Prep stage (see tests/fixtures/README.md).
+6. `placeInWindows(prep, cook)`. Sets `kind: 'waiting'` on window actions, fills `meanwhile` with the ids of placed prep actions, and moves those actions out of `prep` into a third list, `deferred`. It returns `{ prep, cook, deferred }`, and `rewriteParts` returns `{ ingredients, prep, cook, deferred, flags }`, so the UI can look a placed action up by id. Placed prep actions are not counted in the Prep stage (see tests/fixtures/README.md).
 
 Flag codes: `unused-ingredient`, `unknown-ingredient`, `amounts-mismatch`, `split-unresolved`, `collective-word`, `unparseable-quantity`.
 

@@ -34,7 +34,7 @@ export function checkResult(result, expected) {
   assert.equal(result.prep.length, expected.counts.prep, 'prep action count');
   assert.equal(result.cook.length, expected.counts.cook, 'cook action count');
   const byId = new Map();
-  for (const a of [...result.prep, ...result.cook]) byId.set(a.id, a);
+  for (const a of [...result.prep, ...result.cook, ...(result.deferred || [])]) byId.set(a.id, a);
 
   expected.actions.forEach((ea, i) => {
     const a = actions[i];

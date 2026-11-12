@@ -10,6 +10,7 @@
  * @property {Ingredient[]} ingredients
  * @property {Action[]} prep   Prep stage actions, after deferred prep has been moved into windows.
  * @property {Action[]} cook   Cook stage actions, always in the recipe's own order.
+ * @property {Action[]} deferred  Prep actions placed in a waiting window; referenced by id from that action's `meanwhile`.
  * @property {Flag[]} flags
  */
 
