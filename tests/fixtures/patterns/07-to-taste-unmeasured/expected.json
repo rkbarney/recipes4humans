@@ -1,0 +1,127 @@
+{
+  "name": "\"to taste\" and other unmeasured ingredients",
+  "counts": {
+    "prep": 1,
+    "cook": 7
+  },
+  "actions": [
+    {
+      "stage": "prep",
+      "contains": [
+        "mince",
+        "garlic"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "heat",
+        "oil",
+        "pan"
+      ],
+      "amounts": [
+        "2 tbsp oil"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "add",
+        "garlic",
+        "flakes",
+        "fragrant"
+      ],
+      "amounts": [
+        "3 clove garlic",
+        "1 pinch flakes"
+      ],
+      "notAmounts": [],
+      "meanwhile": [],
+      "minutes": [
+        1,
+        1
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "pour",
+        "tomatoes"
+      ],
+      "amounts": [
+        "1 can tomatoes"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "simmer",
+        "salt",
+        "pepper"
+      ],
+      "amounts": [],
+      "notAmounts": [
+        "1 tsp salt",
+        "1 tsp pepper"
+      ],
+      "meanwhile": [],
+      "noAmountFor": [
+        "salt",
+        "pepper"
+      ],
+      "kind": "waiting",
+      "minutes": [
+        15,
+        15
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "cook",
+        "spaghetti",
+        "package"
+      ],
+      "amounts": [
+        "12 oz spaghetti"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "toss",
+        "sauce",
+        "parmesan"
+      ],
+      "amounts": [
+        "½ cup parmesan"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "garnish",
+        "basil"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "noAmountFor": [
+        "basil"
+      ]
+    }
+  ],
+  "split": [],
+  "flags": []
+}

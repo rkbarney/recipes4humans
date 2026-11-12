@@ -1,0 +1,123 @@
+{
+  "name": "stir-fry: high heat, no usable windows",
+  "counts": {
+    "prep": 2,
+    "cook": 6
+  },
+  "actions": [
+    {
+      "stage": "prep",
+      "contains": [
+        "stir",
+        "cornstarch",
+        "water",
+        "soy sauce"
+      ],
+      "amounts": [
+        "1 tbsp cornstarch",
+        "3 tbsp water",
+        "2 tbsp soy sauce"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "prep",
+      "contains": [
+        "mince",
+        "garlic"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "heat",
+        "oil",
+        "wok"
+      ],
+      "amounts": [
+        "2 tbsp oil"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "stir-fry",
+        "chicken"
+      ],
+      "amounts": [
+        "12 oz chicken"
+      ],
+      "notAmounts": [],
+      "meanwhile": [],
+      "minutes": [
+        4,
+        4
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "add",
+        "pepper",
+        "broccoli",
+        "garlic"
+      ],
+      "amounts": [
+        "1 pepper",
+        "2 cup broccoli",
+        "3 clove garlic"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "stir-fry"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "minutes": [
+        3,
+        3
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "pour",
+        "sauce"
+      ],
+      "amounts": [],
+      "notAmounts": [
+        "2 tbsp soy sauce",
+        "1 tbsp cornstarch"
+      ],
+      "meanwhile": [],
+      "noAmountFor": [
+        "sauce"
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "serve",
+        "rice"
+      ],
+      "amounts": [
+        "2 cup rice"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    }
+  ],
+  "split": [],
+  "flags": []
+}

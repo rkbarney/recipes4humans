@@ -1,0 +1,104 @@
+{
+  "name": "divided ingredient, no amounts in the steps: flag, do not guess",
+  "counts": {
+    "prep": 2,
+    "cook": 4
+  },
+  "actions": [
+    {
+      "stage": "prep",
+      "contains": [
+        "toss",
+        "shrimp",
+        "paprika",
+        "salt"
+      ],
+      "amounts": [
+        "1 lb shrimp",
+        "1 tsp paprika",
+        "½ tsp salt"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "prep",
+      "contains": [
+        "mince",
+        "garlic"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "melt",
+        "butter",
+        "skillet"
+      ],
+      "amounts": [
+        "4 tbsp butter"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "cook",
+        "pink"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "minutes": [
+        3,
+        3
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "add",
+        "garlic",
+        "wine",
+        "rest",
+        "butter"
+      ],
+      "amounts": [
+        "4 clove garlic",
+        "¼ cup wine"
+      ],
+      "notAmounts": [
+        "4 tbsp butter"
+      ],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "sprinkle",
+        "parsley"
+      ],
+      "amounts": [
+        "2 tbsp parsley"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    }
+  ],
+  "split": [
+    {
+      "ingredient": "butter",
+      "unresolved": true
+    }
+  ],
+  "flags": [
+    {
+      "code": "split-unresolved",
+      "ingredient": "butter"
+    }
+  ]
+}

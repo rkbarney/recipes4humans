@@ -1,0 +1,89 @@
+{
+  "name": "oven bake with a preheat",
+  "counts": {
+    "prep": 2,
+    "cook": 3
+  },
+  "actions": [
+    {
+      "stage": "prep",
+      "contains": [
+        "mince",
+        "garlic"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "prep",
+      "contains": [
+        "rub",
+        "chicken",
+        "oil",
+        "garlic",
+        "paprika",
+        "salt",
+        "pepper"
+      ],
+      "amounts": [
+        "6 chicken",
+        "2 tbsp oil",
+        "4 clove garlic",
+        "2 tsp paprika",
+        "1 tsp salt",
+        "½ tsp pepper"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "preheat",
+        "oven"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [
+        {
+          "contains": [
+            "juice",
+            "lemon"
+          ]
+        }
+      ],
+      "kind": "waiting"
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "bake",
+        "skin",
+        "crisp"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "kind": "waiting",
+      "minutes": [
+        40,
+        40
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "lemon",
+        "juice"
+      ],
+      "amounts": [
+        "1 lemon"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    }
+  ],
+  "split": [],
+  "flags": []
+}

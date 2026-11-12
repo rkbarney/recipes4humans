@@ -1,0 +1,3 @@
+/* Placeholder styles: plain text on a plain background. */
+body { margin: 0; font: 18px/1.5 system-ui, sans-serif; color: #111; background: #fff; }
+#app { max-width: 40rem; margin: 0 auto; padding: 1rem; }

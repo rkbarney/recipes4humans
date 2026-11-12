@@ -1,0 +1,108 @@
+{
+  "name": "instructions written as one block of text",
+  "counts": {
+    "prep": 1,
+    "cook": 6
+  },
+  "actions": [
+    {
+      "stage": "prep",
+      "contains": [
+        "dice",
+        "onion"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "heat",
+        "oil",
+        "pot"
+      ],
+      "amounts": [
+        "1 tbsp oil"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "cook",
+        "onion",
+        "carrots",
+        "soft"
+      ],
+      "amounts": [
+        "1 onion",
+        "2 carrots"
+      ],
+      "notAmounts": [],
+      "meanwhile": [],
+      "minutes": [
+        5,
+        5
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "stir",
+        "cumin",
+        "salt"
+      ],
+      "amounts": [
+        "1 tsp cumin",
+        "1 tsp salt"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "add",
+        "lentils",
+        "broth",
+        "boil"
+      ],
+      "amounts": [
+        "1 cup lentils",
+        "4 cup broth"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "reduce",
+        "heat"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "simmer",
+        "covered",
+        "tender"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "kind": "waiting",
+      "minutes": [
+        30,
+        30
+      ]
+    }
+  ],
+  "split": [],
+  "flags": []
+}

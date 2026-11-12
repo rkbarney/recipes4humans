@@ -1,0 +1,106 @@
+{
+  "name": "loose, casual wording",
+  "counts": {
+    "prep": 2,
+    "cook": 5
+  },
+  "actions": [
+    {
+      "stage": "prep",
+      "contains": [
+        "crack",
+        "eggs",
+        "bowl"
+      ],
+      "amounts": [
+        "4 eggs"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "prep",
+      "contains": [
+        "whisk",
+        "milk"
+      ],
+      "amounts": [
+        "¼ cup milk"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "melt",
+        "butter",
+        "pan"
+      ],
+      "amounts": [
+        "2 tbsp butter"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "pour",
+        "stirring",
+        "set"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "minutes": [
+        3,
+        3
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "fold",
+        "cheddar"
+      ],
+      "amounts": [
+        "½ cup cheddar"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "pile",
+        "bread"
+      ],
+      "amounts": [
+        "4 slice bread"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "sprinkle",
+        "chives",
+        "salt",
+        "pepper"
+      ],
+      "amounts": [
+        "2 tbsp chives"
+      ],
+      "notAmounts": [],
+      "meanwhile": [],
+      "noAmountFor": [
+        "salt",
+        "pepper"
+      ]
+    }
+  ],
+  "split": [],
+  "flags": []
+}

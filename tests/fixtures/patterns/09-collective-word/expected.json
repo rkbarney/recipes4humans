@@ -1,0 +1,95 @@
+{
+  "name": "collective word (\"the spices\"): flag, do not expand",
+  "counts": {
+    "prep": 0,
+    "cook": 5
+  },
+  "actions": [
+    {
+      "stage": "cook",
+      "contains": [
+        "brown",
+        "beef"
+      ],
+      "amounts": [
+        "1 lb beef"
+      ],
+      "notAmounts": [],
+      "meanwhile": [],
+      "kind": "waiting",
+      "minutes": [
+        6,
+        6
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "add",
+        "spices"
+      ],
+      "amounts": [],
+      "notAmounts": [
+        "1 tbsp chili powder",
+        "1 tsp cumin",
+        "1 tsp paprika",
+        "½ tsp garlic powder"
+      ],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "stir"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "minutes": [
+        1,
+        1
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "stir",
+        "beans",
+        "tomatoes",
+        "broth"
+      ],
+      "amounts": [
+        "1 can beans",
+        "1 can tomatoes",
+        "1 cup broth"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "simmer",
+        "stirring"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "kind": "waiting",
+      "minutes": [
+        20,
+        20
+      ]
+    }
+  ],
+  "split": [],
+  "flags": [
+    {
+      "code": "collective-word",
+      "actionContains": [
+        "spices"
+      ]
+    }
+  ],
+  "flagsExact": false
+}

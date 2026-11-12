@@ -1,0 +1,119 @@
+{
+  "name": "braise with a long simmer",
+  "counts": {
+    "prep": 0,
+    "cook": 7
+  },
+  "actions": [
+    {
+      "stage": "cook",
+      "contains": [
+        "heat",
+        "oil"
+      ],
+      "amounts": [
+        "2 tbsp oil"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "brown",
+        "beef"
+      ],
+      "amounts": [
+        "2 lb beef"
+      ],
+      "notAmounts": [],
+      "meanwhile": [
+        {
+          "contains": [
+            "mince",
+            "garlic"
+          ]
+        }
+      ],
+      "kind": "waiting",
+      "minutes": [
+        6,
+        6
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "add",
+        "onions",
+        "garlic",
+        "tomato paste",
+        "thyme",
+        "salt"
+      ],
+      "amounts": [
+        "2 onion",
+        "3 clove garlic",
+        "2 tbsp tomato paste",
+        "1 tsp thyme",
+        "1 tsp salt"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "cook",
+        "soft"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "minutes": [
+        5,
+        5
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "pour",
+        "wine",
+        "broth"
+      ],
+      "amounts": [
+        "1 cup wine",
+        "2 cup broth"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "cover"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "simmer",
+        "tender"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "kind": "waiting",
+      "minutes": [
+        120,
+        120
+      ]
+    }
+  ],
+  "split": [],
+  "flags": []
+}

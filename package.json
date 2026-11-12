@@ -1,0 +1,9 @@
+{
+  "name": "recipes4humans",
+  "version": "0.1.0",
+  "description": "Rewrites a recipe into a cooking view: one action per line, amounts on every use, prep made explicit.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test 'tests/*.test.js'"
+  }
+}

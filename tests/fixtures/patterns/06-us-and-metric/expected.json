@@ -1,0 +1,97 @@
+{
+  "name": "amounts in both US and metric",
+  "counts": {
+    "prep": 3,
+    "cook": 3
+  },
+  "actions": [
+    {
+      "stage": "prep",
+      "contains": [
+        "whisk",
+        "flour",
+        "sugar",
+        "baking powder",
+        "salt",
+        "bowl"
+      ],
+      "amounts": [
+        "1½ cup flour",
+        "190 g flour",
+        "2 tbsp sugar",
+        "25 g sugar",
+        "2 tsp baking powder",
+        "¼ tsp salt"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "prep",
+      "contains": [
+        "melt",
+        "butter"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "prep",
+      "contains": [
+        "whisk",
+        "milk",
+        "egg",
+        "butter",
+        "combined"
+      ],
+      "amounts": [
+        "1 cup milk",
+        "240 ml milk",
+        "1 egg",
+        "3 tbsp butter",
+        "45 g butter"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "heat",
+        "skillet"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "ladle",
+        "batter"
+      ],
+      "amounts": [],
+      "notAmounts": [
+        "1½ cup flour"
+      ],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "cook",
+        "golden"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "minutes": [
+        2,
+        2
+      ]
+    }
+  ],
+  "split": [],
+  "flags": []
+}

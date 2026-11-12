@@ -1,0 +1,94 @@
+{
+  "name": "grouped ingredients (For the sauce / For the noodles)",
+  "counts": {
+    "prep": 1,
+    "cook": 4
+  },
+  "actions": [
+    {
+      "stage": "prep",
+      "contains": [
+        "whisk",
+        "peanut butter",
+        "soy sauce",
+        "vinegar",
+        "honey"
+      ],
+      "amounts": [
+        "3 tbsp peanut butter",
+        "2 tbsp soy sauce",
+        "1 tbsp vinegar",
+        "1 tsp honey"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "boil",
+        "noodles"
+      ],
+      "amounts": [
+        "8 oz noodles"
+      ],
+      "notAmounts": [],
+      "meanwhile": [],
+      "kind": "waiting",
+      "minutes": [
+        5,
+        5
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "drain"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "toss",
+        "sauce"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "noAmountFor": [
+        "sauce"
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "top",
+        "cucumber",
+        "scallions",
+        "peanuts"
+      ],
+      "amounts": [
+        "1 cucumber",
+        "2 scallions",
+        "2 tbsp peanuts"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    }
+  ],
+  "split": [],
+  "flags": [],
+  "groups": {
+    "peanut butter": "For the sauce",
+    "soy sauce": "For the sauce",
+    "vinegar": "For the sauce",
+    "honey": "For the sauce",
+    "noodles": "For the noodles",
+    "cucumber": "For the noodles",
+    "scallions": "For the noodles",
+    "peanuts": "For the noodles"
+  }
+}

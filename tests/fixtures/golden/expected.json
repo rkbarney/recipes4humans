@@ -1,0 +1,37 @@
+{
+  "name": "golden: lemony chicken and feta meatball soup",
+  "counts": { "prep": 6, "cook": 11 },
+  "actions": [
+    { "stage": "prep", "contains": ["dice", "onion"], "amounts": [], "notAmounts": [], "meanwhile": [] },
+    { "stage": "prep", "contains": ["grate", "squeeze"], "amounts": [], "notAmounts": [], "meanwhile": [] },
+    { "stage": "prep", "contains": ["chop", "dill"], "amounts": ["⅓ cup dill"], "notAmounts": [], "meanwhile": [] },
+    { "stage": "prep", "contains": ["bowl", "chicken", "feta", "oats", "cumin", "turmeric", "salt", "most of"],
+      "amounts": ["1 lb chicken", "½ cup feta", "¼ cup oats", "1 tbsp cumin", "½ tsp turmeric", "1 tsp salt", "2 tbsp dill"],
+      "notAmounts": ["¾ cup oats", "½ cup oats", "1 tbsp turmeric", "⅓ cup dill"],
+      "noteContains": ["reserve", "garnish"], "meanwhile": [] },
+    { "stage": "prep", "contains": ["combine", "gently"], "amounts": [], "notAmounts": [], "noteContains": ["hands"], "meanwhile": [] },
+    { "stage": "prep", "contains": ["wet", "hands", "shape", "balls"], "amounts": [], "notAmounts": [], "noteContains": ["enough", "four"], "meanwhile": [] },
+    { "stage": "cook", "contains": ["heat", "oil", "dutch oven", "shimmering"], "amounts": ["3 tbsp oil"], "notAmounts": [], "meanwhile": [] },
+    { "stage": "cook", "contains": ["onion", "salt", "soften"], "amounts": [], "notAmounts": ["1 onion"], "noAmountFor": ["salt"], "meanwhile": [] },
+    { "stage": "cook", "contains": ["turmeric", "flakes", "fragrant"], "amounts": ["1 tbsp turmeric", "½ tsp flakes"], "notAmounts": ["½ tsp turmeric", "1 tbsp flakes"], "meanwhile": [] },
+    { "stage": "cook", "contains": ["meatballs", "onions", "sides"], "amounts": [], "notAmounts": [], "meanwhile": [] },
+    { "stage": "cook", "contains": ["brown", "meatballs"], "kind": "waiting", "amounts": [], "notAmounts": [],
+      "meanwhile": [ { "contains": ["juice", "lemon"] }, { "contains": ["wedges", "lemon"] } ] },
+    { "stage": "cook", "contains": ["broth", "oats", "meatballs"], "amounts": ["4 cup broth", "½ cup oats"], "notAmounts": ["¾ cup oats", "¼ cup oats"], "meanwhile": [] },
+    { "stage": "cook", "contains": ["simmer", "salt"], "amounts": [], "notAmounts": ["1 tsp salt"], "noAmountFor": ["salt"], "meanwhile": [] },
+    { "stage": "cook", "contains": ["simmer", "stirring", "oats", "softened"], "kind": "waiting", "amounts": [], "notAmounts": [], "meanwhile": [] },
+    { "stage": "cook", "contains": ["spinach", "lemon", "wilted"], "amounts": ["4 cup spinach"], "notAmounts": ["2 lemon"], "meanwhile": [] },
+    { "stage": "cook", "contains": ["adjust", "seasoning"], "amounts": [], "notAmounts": [], "meanwhile": [] },
+    { "stage": "cook", "contains": ["bowls", "pepper", "dill", "wedges", "flakes"], "amounts": ["2 tbsp dill"], "notAmounts": ["⅓ cup dill"], "noAmountFor": ["pepper"], "meanwhile": [] }
+  ],
+  "split": [
+    { "ingredient": "oats", "portions": [ { "qty": 0.25, "unit": "cup" }, { "qty": 0.5, "unit": "cup" } ] },
+    { "ingredient": "onion", "portions": [ { "qty": 0.5, "prep": "diced" }, { "qty": 0.5, "prep": "grated" } ] },
+    { "ingredient": "dill", "portions": [ { "note": "most of" }, { "qty": 2, "unit": "tbsp" } ] },
+    { "ingredient": "turmeric", "portions": [ { "qty": 0.5, "unit": "tsp" }, { "qty": 1, "unit": "tbsp" } ] },
+    { "ingredient": "salt", "portions": [ { "qty": 1, "unit": "tsp" }, { "note": "to season" } ] },
+    { "ingredient": "flakes", "portions": [ { "qty": 0.5, "unit": "tsp" }, { "tag": "serving" } ] },
+    { "ingredient": "lemons", "portions": [ { "qty": 1, "prep": "juiced" }, { "qty": 1, "prep": "cut into wedges" } ] }
+  ],
+  "flags": []
+}

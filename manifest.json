@@ -1,0 +1,12 @@
+{
+  "name": "recipes4humans",
+  "short_name": "recipes4humans",
+  "description": "Rewrites a recipe into a cooking view: one action per line, amounts on every use.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": []
+}
