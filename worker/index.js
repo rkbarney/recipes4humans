@@ -14,8 +14,7 @@
 const ALLOWED_ORIGINS = [
   'http://localhost:8080',
   'https://rkbarney.github.io', // GitHub Pages
-  // TODO: add the production origin once it is decided, for example 'https://recipes.example'.
-  // 'https://PRODUCTION-ORIGIN-NOT-DECIDED-YET',
+  'https://richardbarney.com', // the same site on its own domain (GitHub Pages serves it here)
 ];
 
 const USER_AGENT = 'recipes4humans/1.0 (+https://github.com/rkbarney/recipes4humans)';
@@ -125,7 +124,8 @@ export default {
       if (!success) return reply('Too Many Requests', 429);
     }
 
-    if (!isAllowedReferer(request.headers.get('Referer') || '')) return reply('Forbidden', 403);
+    // The body says why, so the app can tell this refusal from a recipe site refusing the proxy.
+    if (!isAllowedReferer(request.headers.get('Referer') || '')) return jsonError('origin-not-allowed', 403);
 
     const param = new URL(request.url).searchParams.get('url');
     if (!param) return jsonError('Missing url parameter', 400);

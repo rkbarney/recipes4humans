@@ -34,5 +34,6 @@ test('link failures say what happened and what to do', () => {
   assert.match(linkFailureMessage(403, 'example.com'), /does not let other apps/);
   assert.match(linkFailureMessage(404, 'example.com'), /not found/);
   assert.match(linkFailureMessage(200, 'example.com', true), /No recipe data/);
+  assert.match(linkFailureMessage(403, 'example.com', false, true), /not set up for this web address/);
   assert.match(linkFailureMessage(null, 'example.com'), /Could not read a recipe from example\.com/);
 });

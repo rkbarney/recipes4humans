@@ -119,12 +119,15 @@ async function importLink(link) {
   let found = null;
   let status = null;
   let gotPage = false;
+  let ownRefusal = false;
   try {
     const res = await fetch(`${CONFIG.proxyUrl}?url=${encodeURIComponent(url.href)}`, { signal: AbortSignal.timeout(20000) });
     status = res.status;
     if (res.status === 200) {
       found = extractRecipe(await res.text(), url.href);
       gotPage = !found;
+    } else if (res.status === 403) {
+      ownRefusal = /origin-not-allowed/.test(await res.text());
     }
   } catch {
     found = null;
@@ -132,7 +135,7 @@ async function importLink(link) {
   if (token !== navToken) return; // the person went to another screen while we waited
   if (!found) {
     screen.setBusy(false);
-    screen.setLinkStatus(ui.linkFailureMessage(status, url.hostname, gotPage));
+    screen.setLinkStatus(ui.linkFailureMessage(status, url.hostname, gotPage, ownRefusal));
     screen.openText(true);
     return;
   }

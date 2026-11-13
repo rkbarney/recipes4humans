@@ -613,10 +613,13 @@ export function renderIosHint(container, onDismiss) {
  * @param {number | null} status  HTTP status the Worker returned, or null when it could not be reached
  * @param {string} host           the site's host name
  * @param {boolean} gotPage       true when the page loaded but held no recipe data
+ * @param {boolean} ownRefusal    true when the Worker refused this app's own address (body 'origin-not-allowed')
  */
-export function linkFailureMessage(status, host, gotPage = false) {
+export function linkFailureMessage(status, host, gotPage = false, ownRefusal = false) {
   const name = String(host || 'That site').replace(/^www\./, '');
   const paste = 'Paste the recipe text instead.';
+  // The link reader itself refused this page's web address (a setup problem, not the recipe site).
+  if (ownRefusal) return `Link import is not set up for this web address yet. ${paste}`;
   if (gotPage) return `No recipe data on that page. ${paste}`;
   if (status === 401 || status === 402 || status === 403 || status === 429) return `${name} does not let other apps read its recipes. ${paste}`;
   if (status === 404 || status === 410) return `That page was not found. Check the link, or paste the recipe text instead.`;
