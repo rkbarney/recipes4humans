@@ -13,6 +13,7 @@
 // Only pages loaded from these origins may use the proxy.
 const ALLOWED_ORIGINS = [
   'http://localhost:8080',
+  'https://rkbarney.github.io', // GitHub Pages
   // TODO: add the production origin once it is decided, for example 'https://recipes.example'.
   // 'https://PRODUCTION-ORIGIN-NOT-DECIDED-YET',
 ];
