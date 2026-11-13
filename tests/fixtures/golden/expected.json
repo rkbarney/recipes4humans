@@ -6,7 +6,7 @@
     { "stage": "prep", "contains": ["grate", "squeeze"], "amounts": [], "notAmounts": [], "meanwhile": [] },
     { "stage": "prep", "contains": ["chop", "dill"], "amounts": ["⅓ cup dill"], "notAmounts": [], "meanwhile": [] },
     { "stage": "prep", "contains": ["bowl", "chicken", "feta", "oats", "cumin", "turmeric", "salt", "most of"],
-      "amounts": ["1 lb chicken", "½ cup feta", "¼ cup oats", "1 tbsp cumin", "½ tsp turmeric", "1 tsp salt", "2 tbsp dill"],
+      "amounts": ["1 lb chicken", "½ cup feta", "¼ cup oats", "1 tbsp cumin", "½ tsp turmeric", "1 tsp salt"],
       "notAmounts": ["¾ cup oats", "½ cup oats", "1 tbsp turmeric", "⅓ cup dill"],
       "noteContains": ["reserve", "garnish"], "meanwhile": [] },
     { "stage": "prep", "contains": ["combine", "gently"], "amounts": [], "notAmounts": [], "noteContains": ["hands"], "meanwhile": [] },

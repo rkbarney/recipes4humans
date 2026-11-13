@@ -85,8 +85,47 @@ describe('spec 6: frying, searing and broiling under 5 minutes', () => {
     }
   });
   it('5 minutes or more is usable', () => {
-    assert.equal(win(run('Sear the steak for 8 minutes.')).meanwhile.length, 0, 'sear is not on the waiting list, so it is never a window');
     assert.ok(win(run('Brown the meat on high heat for 8 minutes.')).meanwhile.length > 0);
+  });
+});
+
+describe('spec 6: sear, broil, fry, grill and roast', () => {
+  for (const [text, label] of [
+    ['Sear the steak for 8 minutes.', 'sear'],
+    ['Broil the fish for 5 minutes.', 'broil'],
+    ['Fry the cutlets for 6 minutes.', 'fry'],
+    ['Grill the corn for 10 minutes, turning once.', 'grill'],
+    ['Roast the nuts for 5 minutes.', 'roast'],
+  ]) {
+    it(`${label} is a window at 5 minutes or more`, () => {
+      const r = run(text);
+      assert.equal(win(r).kind, 'waiting', text);
+      assert.ok(win(r).meanwhile.length > 0, text);
+    });
+  }
+  for (const text of ['Sear the steak for 4 minutes.', 'Grill the corn for 4 minutes.', 'Fry the cutlets for 4 minutes.']) {
+    it(`under 5 minutes is no window: ${text}`, () => {
+      const r = run(text);
+      assert.equal(win(r).kind, 'hands-on');
+      assert.deepEqual(r.deferred, []);
+    });
+  }
+  for (const text of [
+    'Fry the cutlets for 10 minutes, turning often.',
+    'Grill the chops for 12 minutes, flipping frequently.',
+    'Sear the steak for 10 minutes, turning every minute.',
+    'Fry the onions for 10 minutes, stirring constantly.',
+    'Roast the peppers for 20 minutes, turning them often.',
+  ]) {
+    it(`frequent turning or stirring cancels it: ${text}`, () => {
+      const r = run(text);
+      assert.equal(win(r).kind, 'hands-on');
+      assert.deepEqual(win(r).meanwhile, []);
+    });
+  }
+  it('"flipping once" and "turning occasionally" do not cancel it', () => {
+    assert.equal(win(run('Sear the steak for 10 minutes, flipping once.')).kind, 'waiting');
+    assert.equal(win(run('Brown the sausages for 10 minutes, turning occasionally.')).kind, 'waiting');
   });
 });
 

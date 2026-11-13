@@ -4,7 +4,10 @@
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { rewrite, rewriteParts } from '../js/engine/index.js';
+import { splitSentences } from '../js/engine/steps-sentences.js';
+import { patterns } from './helpers/fixtures.js';
 
 const texts = (list) => list.map((a) => a.text);
 const all = (r) => [...r.prep, ...r.cook];
@@ -198,5 +201,47 @@ describe('end to end: small recipes', () => {
     const r = rewriteParts({ ingredients: ['¾ cup oats, divided'], steps: ['Heat oil.', 'Add ¼ cup oats.', 'Add the remaining oats.'] });
     assert.deepEqual(texts(r.cook), ['Heat oil.', 'Add ¼ cup oats.', 'Add the remaining ½ cup oats.']);
     assert.deepEqual(r.flags, []);
+  });
+});
+
+describe('no recipe text is lost', () => {
+  // Words without articles or the "and" and "then" a split removes, and with a plural s ignored (an inserted amount may pluralise a unit-less noun).
+  const words = (t) => (t.toLowerCase().match(/[a-zà-ɏ]+/g) ?? []).filter((w) => !['the', 'a', 'an', 'and', 'then'].includes(w)).map((w) => w.replace(/(?:es|s)$/, ''));
+  /**
+   * Every sentence of every input step: all its words appear in the action text or notes of the same step.
+   * A step with no instruction at all adds its sentences to the previous action, so it looks back to that action's step.
+   */
+  function missing(r) {
+    const out = [];
+    const pool = [...r.prep, ...r.cook, ...r.deferred];
+    const has = (n) => pool.some((a) => a.original.step === n);
+    r.steps.forEach((step, i) => {
+      let from = i + 1;
+      while (from > 1 && !has(from)) from--;
+      const bag = new Set(words(pool.filter((a) => a.original.step >= from && a.original.step <= i + 1)
+        .map((a) => `${a.text} ${a.notes.join(' ')}`).join(' ')));
+      for (const sp of splitSentences(step)) {
+        const lost = words(step.slice(sp.start, sp.end)).filter((w) => !bag.has(w));
+        if (lost.length) out.push(`step ${i + 1}: "${step.slice(sp.start, sp.end)}" lost ${lost.join(', ')}`);
+      }
+    });
+    return out;
+  }
+  it('an instruction-free sentence before the first action of a step is kept as a note', () => {
+    const r = rewriteParts({
+      ingredients: ['1 cup rice', '2 cups water'],
+      steps: ['Rinse the rice.', 'This is the part that matters. Boil the water. Add the rice.', 'It is done when tender. The rice keeps well.'],
+    });
+    assert.deepEqual(missing(r), []);
+    const boil = all(r).find((a) => /^Boil/.test(a.text));
+    assert.ok(boil.notes.includes('This is the part that matters.'));
+  });
+  it('holds for the golden recipe and every pattern recipe', () => {
+    const gold = rewrite(readFileSync(new URL('./fixtures/golden/input.txt', import.meta.url), 'utf8'));
+    assert.deepEqual(missing(gold), []);
+    for (const fx of patterns()) {
+      const r = rewrite(fx.input);
+      assert.deepEqual(missing(r), [], fx.name);
+    }
   });
 });

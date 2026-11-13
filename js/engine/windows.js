@@ -9,6 +9,10 @@ const clone = (o) => JSON.parse(JSON.stringify(o));
 
 /** Stirring that has to continue: it cancels a window. "Stirring occasionally" does not. */
 const CONSTANT_STIR = /\b(?:stir(?:ring)?|whisk(?:ing)?|mix(?:ing)?)\b[^,.;]*?\b(?:constantly|frequently|often|continuously|continually)\b|\b(?:constantly|frequently|often|continuously|continually)\s+(?:stir(?:ring)?|whisk(?:ing)?|mix(?:ing)?)\b/i;
+/** Turning or flipping that happens more than once: the cook has to stay at the pan. "Turning once" does not. */
+const TURN_OFTEN = /\b(?:turn(?:ing)?|flip(?:ping)?|rotat(?:e|ing)|toss(?:ing)?)\b[^.;]*?\b(?:often|frequently|constantly|continuously|continually|regularly|every|twice|several times|multiple times|a few times)\b|\b(?:often|frequently|constantly|continuously|continually|regularly)\s+(?:turn(?:ing)?|flip(?:ping)?|rotat(?:e|ing)|toss(?:ing)?)\b/i;
+/** Dry-heat verbs that are windows only at 5 minutes or more (they are not on the general waiting list). */
+const HEAT_VERBS = new Set(['sear', 'broil', 'fry', 'pan-fry', 'deep-fry', 'grill', 'roast']);
 const HIGH_HEAT = /\b(?:fry|fried|frying|sear|searing|broil|broiling|pan-fry|stir-fry|high heat)\b/i;
 const LONGER_VERBS = new Set(['cook', 'let', 'leave', 'cover', 'set']);
 
@@ -39,7 +43,7 @@ export function prepMinutes(text) {
 function windowOf(a) {
   const verb = leadVerb(a.text);
   const fullText = `${a.text} ${(a.notes || []).join(' ')}`;
-  const stirring = CONSTANT_STIR.test(fullText);
+  const stirring = CONSTANT_STIR.test(fullText) || TURN_OFTEN.test(fullText);
   const min = a.minutes ? a.minutes[0] : undefined;
 
   // An oven preheat and a big pot of water coming to a boil are 10-minute windows with no stated time.
@@ -47,6 +51,7 @@ function windowOf(a) {
   if (min === undefined && verb === 'bring' && /\bwater\b/i.test(a.text) && /\bboil\b/i.test(a.text)) return { capacity: 6, usable: true, stated: false };
   if (min === undefined || stirring) return null;
 
+  if (HEAT_VERBS.has(verb) && min >= 5) return { capacity: 0.6 * min, usable: true, stated: true };
   if (isWaitingVerb(verb) && min >= 3) return { capacity: 0.6 * min, usable: !(HIGH_HEAT.test(a.text) && min < 5), stated: true };
   if (LONGER_VERBS.has(verb) && min >= 5 && (verb !== 'set' || /^\s*set\s+aside\b/i.test(a.text))) {
     return { capacity: 0.6 * min, usable: true, stated: true };

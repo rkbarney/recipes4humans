@@ -34,4 +34,4 @@ Stages 1 and 2 are independent and can be built in parallel; stages 3 to 6 consu
 
 Flag codes: `unused-ingredient`, `unknown-ingredient`, `ambiguous-ingredient`, `amounts-mismatch`, `split-unresolved`, `collective-word`, `unparseable-quantity`.
 
-A sentence with no instruction becomes a note on the previous action (stage 2). One that comes before any action has nothing to attach to and is dropped.
+A sentence with no instruction becomes a note on the previous action of its step (stage 2). One that comes before the first action of a step becomes a note on that first action. A step with no instruction at all adds its sentences to the previous action (or to the next action, when there is none yet).

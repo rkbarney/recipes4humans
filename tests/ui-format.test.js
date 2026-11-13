@@ -133,3 +133,33 @@ test('the sample result has the golden structure', () => {
   assert.deepEqual(sample.cook.find((a) => a.meanwhile.length).meanwhile, ['p4', 'p5']);
   assert.ok(sample.flags.length >= 1);
 });
+
+test('Gather: a "most of / reserve" split reads by step; prep words only when the portions differ by prep', () => {
+  const n = { numbers: new Map([['a1', 2], ['a5', 9]]), windowOf: new Map(), total: 9 };
+  const herb = {
+    name: 'fresh parsley', alternates: [], total: { qty: 0.5, unit: 'cup' },
+    portions: [
+      { note: 'most of it', prep: 'chopped', usedIn: 'a1' },
+      { qty: 2, unit: 'tbsp', prep: 'chopped', usedIn: 'a5' },
+    ],
+  };
+  assert.equal(gatherLine(herb, n), '½ cup fresh parsley: most of it for step 2, 2 tbsp for step 9');
+  const veg = {
+    name: 'carrot', alternates: [], total: { qty: 2 },
+    portions: [{ qty: 1, prep: 'sliced', usedIn: 'a1' }, { qty: 1, prep: 'shredded', usedIn: 'a5' }],
+  };
+  assert.equal(gatherLine(veg, n), '2 carrot: 1 sliced, 1 shredded');
+});
+
+test('Gather: an unmeasured use with a stated use names no step', () => {
+  const n = { numbers: new Map([['a1', 2], ['a5', 9]]), windowOf: new Map(), total: 9 };
+  const ing = {
+    name: 'sea salt', alternates: [],
+    portions: [{ qty: 1, unit: 'tsp', usedIn: 'a1' }, { note: 'more to season', usedIn: 'a5' }],
+  };
+  assert.equal(gatherLine(ing, n), 'sea salt: 1 tsp for step 2, more to season');
+  const other = { name: 'sea salt', alternates: [], portions: [{ qty: 1, unit: 'tsp', usedIn: 'a1' }, { note: 'more', usedIn: 'a5' }] };
+  assert.equal(gatherLine(other, n), 'sea salt: 1 tsp for step 2, more');
+  const rest = { name: 'rice', alternates: [], total: { qty: 1, unit: 'cup' }, portions: [{ qty: 0.5, unit: 'cup', usedIn: 'a1' }, { note: 'the rest', usedIn: 'a5' }] };
+  assert.equal(gatherLine(rest, n), '1 cup rice: ½ cup for step 2, the rest for step 9');
+});

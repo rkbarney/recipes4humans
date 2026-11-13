@@ -289,16 +289,18 @@ function noteText(raw) {
 export function splitSteps(steps) {
   const actions = [];
   const flags = [];
-  let pending = []; // notes that come before any action exists
+  let pending = []; // notes that come before the first action of their step
+  let stepHasAction = false;
 
   const addNote = (text) => {
     if (!text) return;
-    if (actions.length) actions[actions.length - 1].notes.push(text);
+    if (stepHasAction) actions[actions.length - 1].notes.push(text);
     else pending.push(text);
   };
 
   steps.forEach((step, si) => {
     const text = String(step ?? '');
+    stepHasAction = false;
     for (const sent of splitSentences(text)) {
       const T = tokenize(text, sent.start, sent.end);
       const clauses = splitClauses(T);
@@ -327,10 +329,16 @@ export function splitSteps(steps) {
           meanwhile: [],
         };
         pending = [];
+        stepHasAction = true;
         if (minutes) action.minutes = minutes;
         if (until) action.until = until;
         actions.push(action);
       }
+    }
+    // A step with no instruction at all: its sentences go to the previous action, or wait for the next one.
+    if (!stepHasAction && pending.length && actions.length) {
+      actions[actions.length - 1].notes.push(...pending);
+      pending = [];
     }
   });
   return { actions, flags };

@@ -132,13 +132,19 @@ export function ingredientTotal(ing) {
   return leadingAmount(ing.raw);
 }
 
-/** One portion of a split: "¼ cup for step 4", "½ diced", "more to season". */
-export function portionLabel(p, numbering) {
+/** Notes that name no step: "more to season" is a seasoning use at the end, not a use in one step. */
+const STEPLESS_NOTES = new Set(['more to season', 'more']);
+
+/**
+ * One portion of a split: "¼ cup for step 4", "½ diced", "more to season".
+ * Prep words are shown only when `showPrep` is set (the portions differ by prep); then the prep names the portion and no step is given.
+ */
+export function portionLabel(p, numbering, { showPrep = true } = {}) {
   const amount = formatAmount(p);
   let label = amount || p.note || (p.tag === 'serving' ? 'more' : 'some');
-  if (p.prep) label += ` ${p.prep}`;
+  if (p.prep && showPrep) label += ` ${p.prep}`;
   if (p.tag === 'serving') label += ' for serving';
-  else if (p.usedIn && !p.prep) {
+  else if (p.usedIn && !(p.prep && showPrep) && !(!amount && STEPLESS_NOTES.has(p.note))) {
     const n = stepNumberFor(p.usedIn, numbering);
     if (n) label += ` for step ${n}`;
   }
@@ -158,7 +164,9 @@ export function gatherLine(ing, numbering) {
   const name = [ing.name, ...(ing.alternates || [])].join(' or ');
   let text = [total ? formatAmount(total) : '', name].filter(Boolean).join(' ');
   if (main.length > 1) {
-    text += `: ${main.map((p) => portionLabel(p, numbering)).join(', ')}`;
+    // Prep words name a portion only when the portions differ by prep ("½ diced, ½ grated"); otherwise it is by step.
+    const showPrep = new Set(main.map((p) => p.prep || '')).size > 1;
+    text += `: ${main.map((p) => portionLabel(p, numbering, { showPrep })).join(', ')}`;
   }
   if (serving.length) {
     const amt = serving.map((p) => formatAmount(p)).filter(Boolean).join(' plus ');

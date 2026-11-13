@@ -181,7 +181,7 @@ The Gather list shows every split by step number, as in "¾ cup oats: ¼ cup for
 
 - An action is a waiting window if its verb is on the waiting list (simmer, bake, roast, boil, rest, marinate, chill, brown, reduce, soak, rise) and it states a duration of at least 3 minutes.
 - "Stirring constantly", "whisking constantly" and "stirring frequently" cancel the window.
-- Frying, searing and broiling windows under 5 minutes get no suggestions.
+- Frying, searing, broiling, grilling and roasting are windows at a stated 5 minutes or more, and get no suggestions under that. Turning or flipping more than once ("turning often", "flipping frequently", "turning every minute") cancels a window, like constant stirring.
 - Preheating an oven and bringing a large pot of water to a boil count as 10-minute windows even with no stated time. No other defaults exist.
 - A prep action is deferrable if its ingredient is first used after the window ends. It goes in the earliest window where it fits.
 - Prep times come from a small table (dice an onion 2 minutes, juice a lemon 1 minute, mince garlic 1 minute per 2 cloves). A window is filled to at most 60% of its shortest stated time.

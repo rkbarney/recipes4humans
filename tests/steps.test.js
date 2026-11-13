@@ -191,6 +191,15 @@ describe('parentheses and notes', () => {
     assert.equal(b.length, 1);
     assert.deepEqual(b[0].notes, ['Makes 4 servings.']);
   });
+  it('a sentence before the first action of a step is a note on that action, not on the previous step', () => {
+    const { actions } = splitSteps(['Stir the soup.', 'The pot will be hot. Add the salt.']);
+    assert.deepEqual(actions.map((a) => a.text), ['Stir the soup.', 'Add the salt.']);
+    assert.deepEqual(actions.map((a) => a.notes), [[], ['The pot will be hot.']]);
+  });
+  it('a step with no instruction at all adds its sentences to the previous action', () => {
+    const { actions } = splitSteps(['Stir the soup.', 'It smells good. It will be hot.']);
+    assert.equal(actions[0].notes[0], 'It smells good.');
+  });
   it('turns an instruction-free clause after a semicolon into a note', () => {
     const { actions } = splitSteps(['Cook the rice; the water should be absorbed.']);
     assert.equal(actions.length, 1);

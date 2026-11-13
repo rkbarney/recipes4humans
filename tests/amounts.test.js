@@ -128,6 +128,13 @@ describe('spec 4: "most of" with a reserve', () => {
     assert.equal(r.texts[0], 'Stir in most of the dill.');
     assert.equal(byName(r.ingredients, 'dill').total, '½ cup plus 2 tbsp');
   });
+  it('does not repeat a reserve the action already states in its notes', () => {
+    const r = run(['½ cup parsley'], ['Stir in most of the parsley (save 2 tablespoons for the top).']);
+    assert.equal(r.texts[0], 'Stir in most of the parsley.');
+    assert.deepEqual(r.actions[0].notes, ['save 2 tablespoons for the top']);
+    const p = byName(r.ingredients, 'parsley').portions;
+    assert.equal(p.length, 1);
+  });
   it('inserts nothing for "some of" or "most of" when no reserve is stated', () => {
     const r = run(['1 cup flour'], ['Add most of the flour.', 'Add the rest of the flour.']);
     assert.match(r.texts[0], /^Add most of the flour/);

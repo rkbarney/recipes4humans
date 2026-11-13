@@ -359,10 +359,8 @@ function resolveIngredient(ing, ms, actionById) {
       const r = reserves.get(m);
       if (r && T) {
         const left = subtractQuantities(T, r);
-        assign.set(m, {
-          portion: push({ note: m.quantifier === 'most' ? 'most of it' : 'some' }),
-          insert: { mode: 'paren', text: `reserve ${fmt(r)} ${action.text.slice(m.start, m.end)}` },
-        });
+        // The reserve was read from the action's own notes or text, so it is already shown there: no insertion.
+        assign.set(m, { portion: push({ note: m.quantifier === 'most' ? 'most of it' : 'some' }) });
         if (left) addUsed(left); else known = false;
       } else {
         assign.set(m, { portion: push({ note: m.quantifier === 'most' ? 'most of it' : 'some' }) });
