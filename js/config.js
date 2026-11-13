@@ -13,5 +13,5 @@ export const CONFIG = {
   // Address of the deployed page-fetcher Worker (see worker/README.md), for example
   // 'https://recipes4humans-proxy.<account>.workers.dev'. It must be set to the real deployed URL before
   // "import from a link" works; while it is empty the app tells people to paste the recipe text instead.
-  proxyUrl: '',
+  proxyUrl: 'https://recipes4humans-proxy.rkbarney.workers.dev',
 };
