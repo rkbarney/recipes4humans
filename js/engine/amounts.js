@@ -109,6 +109,7 @@ function resolveIngredient(ing, ms, actionById) {
     let kind = 'main';
     if (!line.length && serving.length) kind = 'serving';
     else if (m.seasoning) kind = 'season';
+    else if (m.coating && ms.length > 1) kind = 'extra';
     else if (m.quantifier === 'more') kind = serving.length ? 'serving' : 'extra';
     else if (m.serving && serving.length && seenMain > 0) kind = 'serving';
     if (kind === 'main') seenMain++;
@@ -215,7 +216,8 @@ function resolveIngredient(ing, ms, actionById) {
     if (m.quantifier) {
       return { mode: 'paren', text: `${text} ${word} in all` };
     }
-    const noun = T && !T.unit && text === totalText ? plural(word, T) : word;
+    // A word that is only part of the name ("chicken" for "chicken breasts") is not pluralised: "4 chickens" would be another thing.
+    const noun = T && !T.unit && text === totalText && !m.partial ? plural(word, T) : word;
     return { mode: 'inline', text, ...(noun !== word ? { noun } : {}) };
   };
 

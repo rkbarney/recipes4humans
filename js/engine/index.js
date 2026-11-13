@@ -10,7 +10,7 @@ import { placeInWindows } from './windows.js';
 
 const BULLET = /^\s*(?:[-*•▢☐□◦▪]|•)\s+/;
 const INGREDIENT_HEADING = /^\W*ingredients?\W*(?:\(.*\))?\W*$/i;
-const STEP_HEADING = /^\W*(?:preparation|instructions|directions|method|steps)\W*$/i;
+const STEP_HEADING = /^\W*(?:preparation|instructions|directions|method|procedure|steps)\W*$/i;
 const OTHER_HEADING = /^\W*(?:notes?|tips?|nutrition(?: facts| information)?|storage|equipment|variations?|serving suggestions?|recipe notes?)\W*$/i;
 const META_LINE = /^\s*(?:yield|yields|serves|servings?|makes|prep time|cook time|total time|time|author|source|course|cuisine|active time)\b\s*:/i;
 const STEP_MARKER = /^\s*step\s+\d+\s*[:.)-]?\s*/i;

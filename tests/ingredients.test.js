@@ -111,8 +111,8 @@ describe('spec 1: unit', () => {
     r = one('1 (14-ounce) can tomatoes');
     assert.equal(r.ing.name, 'tomatoes');
     r = one('1 (8-ounce) package cream cheese');
-    assert.equal(r.p.unit, undefined);
-    assert.ok(r.ing.name.includes('cream cheese'));
+    assert.equal(r.p.unit, 'package');
+    assert.equal(r.ing.name, 'cream cheese');
     r = one('4 packed cups baby spinach');
     assert.equal(r.p.unit, 'cup');
     assert.equal(r.ing.name, 'packed baby spinach');

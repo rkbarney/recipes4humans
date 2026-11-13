@@ -3,7 +3,7 @@
  * Cooking actions are never moved; only prep made from ingredient lines is.
  */
 import { isWaitingVerb } from './verbs.js';
-import { leadVerb } from './text-utils.js';
+import { leadVerb, isOvenPreheat } from './text-utils.js';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
@@ -47,7 +47,7 @@ function windowOf(a) {
   const min = a.minutes ? a.minutes[0] : undefined;
 
   // An oven preheat and a big pot of water coming to a boil are 10-minute windows with no stated time.
-  if (min === undefined && verb === 'preheat' && /\boven\b/i.test(a.text)) return { capacity: 6, usable: true, stated: false };
+  if (min === undefined && isOvenPreheat(a.text)) return { capacity: 6, usable: true, stated: false };
   if (min === undefined && verb === 'bring' && /\bwater\b/i.test(a.text) && /\bboil\b/i.test(a.text)) return { capacity: 6, usable: true, stated: false };
   if (min === undefined || stirring) return null;
 

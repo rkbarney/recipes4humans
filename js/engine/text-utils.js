@@ -142,12 +142,17 @@ export function appliesHeat(text) {
   return v === 'bring' && /\b(?:boil|simmer)\b/i.test(text);
 }
 
-/** True for "Preheat the oven" (and toaster oven): a heat action that does not end the Prep stage. */
+/**
+ * True for an oven preheat, whatever the verb in front ("Preheat the oven", "Turn on the oven to preheat",
+ * "Preheat to 450°F"): a heat action that does not end the Prep stage. Preheating a pan, grill or pot is not one.
+ */
 export function isOvenPreheat(text) {
-  return leadVerb(text) === 'preheat' && /\boven\b/i.test(text);
+  if (!/\bpreheat\b/i.test(text)) return false;
+  if (/\b(?:skillet|pan|pot|grill|griddle|wok|saucepan|dutch\s+oven)\b/i.test(text)) return /\b(?:the\s+)?oven\b/i.test(text.replace(/dutch\s+oven/gi, ''));
+  return true;
 }
 
-const COUNT_UNITS = new Set(['cup', 'clove', 'sprig', 'stalk', 'slice', 'can', 'bunch', 'head', 'piece', 'stick', 'package', 'pinch']);
+const COUNT_UNITS = new Set(['cup', 'clove', 'sprig', 'stalk', 'slice', 'can', 'tin', 'bunch', 'head', 'piece', 'stick', 'package', 'pinch', 'rib']);
 
 /** A quantity as text, with a count unit in the plural when the amount is more than one: "2 cloves", "1 clove", "5 to 7 sprigs". */
 export function showQuantity(qty, unit, format) {

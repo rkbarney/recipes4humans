@@ -32,7 +32,7 @@ export function formatQty(qty) {
   return formatNumber(qty);
 }
 
-const PLURAL_UNITS = { cup: 'cups', clove: 'cloves', can: 'cans', stick: 'sticks', slice: 'slices', pinch: 'pinches' };
+const PLURAL_UNITS = { cup: 'cups', clove: 'cloves', can: 'cans', tin: 'tins', package: 'packages', rib: 'ribs', stick: 'sticks', slice: 'slices', pinch: 'pinches' };
 
 /** Unit with a plural when the quantity is more than 1 ("cup" -> "cups" for 2; tsp, tbsp, lb stay). */
 export function formatUnit(unit, qty) {
@@ -51,7 +51,7 @@ const UNIT_ALIASES = {
   tsp: 'tsp', teaspoon: 'tsp', teaspoons: 'tsp', tbsp: 'tbsp', tbs: 'tbsp', tablespoon: 'tbsp', tablespoons: 'tbsp',
   cup: 'cup', cups: 'cup', oz: 'oz', ounce: 'oz', ounces: 'oz', lb: 'lb', lbs: 'lb', pound: 'lb', pounds: 'lb',
   g: 'g', gram: 'g', grams: 'g', kg: 'kg', ml: 'ml', l: 'l', pinch: 'pinch', clove: 'clove', cloves: 'clove',
-  can: 'can', cans: 'can', stick: 'stick', sticks: 'stick', slice: 'slice', slices: 'slice',
+  can: 'can', cans: 'can', tin: 'tin', tins: 'tin', package: 'package', packages: 'package', packet: 'package', packets: 'package', rib: 'rib', ribs: 'rib', stick: 'stick', sticks: 'stick', slice: 'slice', slices: 'slice',
 };
 
 function parseQtyText(s) {

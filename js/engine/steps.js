@@ -31,11 +31,19 @@ const START_NEXT = new Set([...STRICT_NEXT, 'with', 'to', 'for', 'on', 'in', 'ov
 const NOT_VERB_START = new Set([
   'the', 'a', 'an', 'this', 'that', 'these', 'those', 'there', 'here', 'it', 'its', 'they', 'their', 'he', 'she', 'we',
   'you', 'your', 'i', 'my', 'our', 'one', 'all', 'some', 'most', 'any', 'each', 'both', 'every', 'everything',
-  'everyone', 'enough', 'about', 'yield', 'makes', 'serves', 'makes:', 'note', 'tip', 'and', 'or', 'but', 'so',
+  'everyone', 'enough', 'about', 'another', 'more', 'extra', 'additional', 'remaining', 'other', 'next', 'last', 'yield', 'makes', 'serves', 'makes:', 'note', 'tip', 'and', 'or', 'but', 'so',
   'if', 'when', 'once', 'after', 'before', 'while', 'as', 'until', 'because', 'since', 'for', 'to', 'in', 'on', 'at',
 ]);
 /** An unknown word followed by one of these, at the start of a sentence, is taken as a verb ("Nestle the meatballs"). */
-const FALLBACK_NEXT = new Set(['the', 'a', 'an', 'in', 'into', 'onto', 'to', 'with', 'over', 'on', 'it', 'them', 'each', 'your', 'half', 'about', 'all', 'gently']);
+const FALLBACK_NEXT = new Set(['the', 'a', 'an', 'in', 'into', 'onto', 'to', 'with', 'over', 'on', 'it', 'them', 'each', 'your', 'half', 'about', 'all', 'gently',
+  // a particle: "Punch down the dough", "Pat dry"
+  'down', 'up', 'out', 'off', 'aside', 'away', 'back', 'through', 'apart']);
+/** Prep verbs that need an object: cut off from the verb that supplies it, they would read as a bare "Core." or "Peel.". */
+const BARE_PREP = new Set(['core', 'peel', 'seed', 'pit', 'hull', 'stem', 'trim', 'chop', 'dice', 'mince', 'slice', 'quarter', 'halve',
+  'grate', 'shred', 'zest', 'juice', 'mash', 'crush', 'cube', 'devein', 'rinse', 'wash', 'pat', 'cut']);
+/** After a bare prep verb, these end the clause without naming an object ("slice thinly on the diagonal"). */
+const BARE_TAIL_START = new Set(['on', 'in', 'into', 'across', 'along', 'at', 'crosswise', 'lengthwise', 'diagonally']);
+const BARE_ADVERBS = new Set(['fine', 'finely', 'thin', 'small', 'coarse', 'coarsely', 'well', 'evenly', 'thinly', 'roughly']);
 /** After a comma, "cut into ..." is a description of the ingredient, not a new instruction. */
 const CUT_DESCRIPTION_NEXT = new Set(['into', 'in', 'to', 'up', 'crosswise', 'lengthwise', 'lengthways', 'diagonally']);
 
@@ -167,6 +175,22 @@ function findVerb(T, i) {
 // ---------------------------------------------------------------------------------------------
 // Clauses
 
+/** Is T[a, b) only adverbs and one bare prep verb ("finely chop", "core")? */
+function isBareVerbClause(T, a, b) {
+  let j = a;
+  while (j < b && T[j].type === 'word' && (isAdverb(T[j].lower) || BARE_ADVERBS.has(T[j].lower)) && !BARE_PREP.has(T[j].lower)) j++;
+  return j === b - 1 && T[j].type === 'word' && BARE_PREP.has(T[j].lower);
+}
+
+/** Does the clause whose verb is at T[v] end with no object ("chop finely", "slice thinly on the diagonal")? */
+function endsWithoutObject(T, v) {
+  if (!T[v] || T[v].type !== 'word' || !BARE_PREP.has(T[v].lower)) return false;
+  let j = v + 1;
+  while (j < T.length && T[j].type === 'word' && (isAdverb(T[j].lower) || BARE_ADVERBS.has(T[j].lower))) j++;
+  if (j >= T.length) return true;
+  return T[j].type === 'word' && BARE_TAIL_START.has(T[j].lower);
+}
+
 /** Cut one sentence's tokens into clauses: [{a, b, instr}] with token ranges [a, b). */
 function splitClauses(T) {
   const n = T.length;
@@ -203,7 +227,10 @@ function splitClauses(T) {
       // Inside an "until" clause "and" joins conditions; ", and <verb>" after it starts the next instruction.
       const afterComma = T[k - 1] && T[k - 1].type === 'comma';
       if (w === 'and' && k > cs && (!inUntil || afterComma) && !(T[k + 1] && T[k + 1].lower === 'then')) {
-        if (directVerb(T, k + 1, 'strict', false) >= 0) {
+        const nv = directVerb(T, k + 1, 'strict', false);
+        // "Core and chop the pepper", "peel and finely chop": a bare prep verb keeps the verb that supplies its object.
+        const bare = nv >= 0 && (isBareVerbClause(T, cs, T[k - 1] && T[k - 1].type === 'comma' ? k - 1 : k) || endsWithoutObject(T, nv));
+        if (nv >= 0 && !bare) {
           let e = k;
           if (T[e - 1] && T[e - 1].type === 'comma') e--;
           close(e, k + 1);
@@ -212,7 +239,7 @@ function splitClauses(T) {
       }
     } else if (t.type === 'comma' && k > cs && !(T[k + 1] && T[k + 1].lower === 'then')) {
       const j = directVerb(T, k + 1, 'strict', false);
-      if (j >= 0) {
+      if (j >= 0 && !isBareVerbClause(T, cs, k) && !endsWithoutObject(T, j)) {
         const w = T[j].lower;
         const nx = T[j + 1];
         const description = w === 'cut' && nx && nx.type === 'word' && CUT_DESCRIPTION_NEXT.has(nx.lower);

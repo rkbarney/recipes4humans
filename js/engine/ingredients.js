@@ -5,6 +5,7 @@
  * confidence comes back with no quantity and an `unparseable-quantity` flag.
  */
 import { parseQuantityPrefix, parseAmount, matchUnitPrefix } from './quantity.js';
+import { stem } from './text-utils.js';
 
 /** @typedef {import('./types.js').ParsedIngredient} ParsedIngredient */
 /** @typedef {import('./types.js').Flag} Flag */
@@ -31,9 +32,17 @@ const DESCRIPTORS = new Set([
 ]);
 
 const MODIFIERS_BEFORE_UNIT = /^(packed|heaping|heaped|level|scant|generous|rounded)\s+/i;
+/** "about 6 cups flour": an approximation word in front of the amount is dropped, the amount is kept. */
+const APPROX_BEFORE_QTY = /^(?:about|approximately|approx\.?|roughly|around|~)\s*(?=\d|[¼½¾⅓⅔⅛⅜⅝⅞])/i;
+/** "4 large cloves garlic", "2 medium ribs celery": a size word between the amount and its unit describes the unit. */
+const SIZE_BEFORE_UNIT = /^(?:small|medium|large|big|jumbo)\s+/i;
+/** "3 ea. bananas", "2 each lemons": a count marker, not a unit. */
+const EACH_MARKER = /^(?:ea\.?|each)(?![A-Za-z])\s*/i;
 const ARTICLE_UNITS = new Set(['pinch', 'dash', 'clove', 'can', 'stick', 'sprig', 'bunch', 'slice', 'piece', 'head', 'stalk']);
 const VAGUE_QUANTITY = /^(?:half|quarter|dozen|couple|few|several)\b/i;
 const TRAILING_PHRASE = /\s+(to taste|as needed|for serving|for garnish|for garnishing|to serve|optional)$/i;
+/** "vegetable oil for frying and stir-frying": what the ingredient is for is not part of its name. */
+const PURPOSE_PHRASE = /\s+for\s+[A-Za-z-]+ing(?:\s+(?:and|or)\s+[A-Za-z-]+ing)*$/i;
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
@@ -85,6 +94,8 @@ function addNote(piece, notes) {
     notes.servingTag = true;
     return;
   }
+  // An optional step ("optionally peeled") is not an instruction the recipe needs.
+  if (/\boptional(?:ly)?\b/i.test(s)) return;
   if (PREP_RE.test(s)) {
     notes.prep.push(s);
     if (m) notes.servingTag = true;
@@ -141,7 +152,7 @@ function parseLine(raw) {
   const tailText = comma < 0 ? '' : text.slice(comma + 1);
 
   // ---- quantity and unit
-  let rest = headText;
+  let rest = headText.replace(APPROX_BEFORE_QTY, '');
   let qty;
   let unit;
   let alt;
@@ -161,7 +172,14 @@ function parseLine(raw) {
       rest = rest.slice(mod[0].length);
     }
     prefixWords = mods.join(' ');
-    const u = matchUnitPrefix(rest);
+    const eachMark = EACH_MARKER.exec(rest);
+    if (eachMark) rest = rest.slice(eachMark[0].length);
+    let u = matchUnitPrefix(rest);
+    const size = SIZE_BEFORE_UNIT.exec(rest);
+    if (!u && size) {
+      const after = matchUnitPrefix(rest.slice(size[0].length));
+      if (after) { u = { unit: after.unit, length: size[0].length + after.length }; }
+    }
     if (u) {
       unit = u.unit;
       rest = rest.slice(u.length).trimStart().replace(/^of\s+/i, '');
@@ -222,8 +240,8 @@ function parseLine(raw) {
 
   // Trailing phrases glued to the name ("salt to taste").
   let m;
-  while ((m = TRAILING_PHRASE.exec(name))) {
-    if (/serv|garnish/i.test(m[1])) notes.servingTag = true;
+  while ((m = TRAILING_PHRASE.exec(name) || PURPOSE_PHRASE.exec(name))) {
+    if (m[1] && /serv|garnish/i.test(m[1])) notes.servingTag = true;
     name = name.slice(0, m.index).trim();
   }
 
@@ -256,6 +274,13 @@ function parseLine(raw) {
     fraction = null;
     extraPortions.length = 0;
   }
+
+  // A prep note that only repeats the name ("freshly squeezed lemon juice (that is, freshly squeezed)") adds no step.
+  const nameStems = new Set((name.match(/[A-Za-z]+/g) || []).map((w) => stem(w)));
+  notes.prep = notes.prep.filter((piece) => {
+    const words = (piece.match(new RegExp(PREP_RE.source, 'gi')) || []).filter((w) => !/\s/.test(w));
+    return !(words.length && words.every((w) => nameStems.has(stem(w))));
+  });
 
   // ---- names: unmeasured "A and B" lines, then alternates
   let names = [name];

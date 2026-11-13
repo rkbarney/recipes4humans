@@ -24,6 +24,8 @@ export const COOKING_VERBS = new Set([
   'stand', 'steam', 'steep', 'stem', 'stir', 'stir-fry', 'strain', 'stuff', 'submerge', 'sweat',
   'swirl', 'taste', 'tear', 'tent', 'thaw', 'thicken', 'tilt', 'toast', 'top', 'toss', 'transfer',
   'trim', 'try', 'turn', 'uncover', 'unmold', 'wait', 'wash', 'whip', 'whisk', 'wipe', 'wrap',
+  // Found missing in real recipes: an instruction that starts with one of these was filed as a note.
+  'begin', 'dredge', 'drape', 'grab', 'move', 'plunge', 'prick', 'punch', 'run', 'scald', 'slash', 'start', 'stop', 'tuck',
 ]);
 
 /**

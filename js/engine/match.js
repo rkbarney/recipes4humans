@@ -241,7 +241,7 @@ export function matchIngredients(ingredients, actions) {
           for (const inf of info) if (inf.hyphenWords.has(word)) set.add(inf.idx);
         }
         for (let k = 0; k < n; k++) consumed[i + k] = true;
-        found.push({ i, n, set: [...set].sort((a, b) => a - b) });
+        found.push({ i, n, tier: bestTier, set: [...set].sort((a, b) => a - b) });
       }
     }
     found.sort((a, b) => a.i - b.i);
@@ -324,6 +324,8 @@ function resolveByDescriptors(f, toks, info) {
   return hits.length === 1 ? hits[0] : null;
 }
 
+const COATING = /\b(?:grease[ds]?|greasing|oil(?:ed|ing)?|butter(?:ed|ing)?|spray(?:ed|ing)?|coat(?:ed|ing)?|brush(?:ed|ing)?|dust(?:ed|ing)?)\b[^.;]*\b(?:pans?|skillets?|sheets?|dish(?:es)?|tins?|bowls?|griddle|grates?|plates?|mou?lds?|trays?|pots?|woks?)\b[^.;]*\bwith\s+(?:(?:the\s+)?[\w-]+\s+(?:or|and)\s+)?(?:the\s+)?$/i;
+
 /** Everything stage 4 needs to know about one mention. */
 function buildMention(action, toks, consumed, f, ingredientId, ing, inf, untilAt) {
   const text = action.text;
@@ -346,7 +348,14 @@ function buildMention(action, toks, consumed, f, ingredientId, ing, inf, untilAt
     k--;
     absorbed++;
   }
+  // A hyphenated modifier ("all-purpose") is one word: an inserted amount never lands inside it.
+  for (let j = k + 1; j > 0 && toks[j].hy && toks[j - 1].hy && toks[j].start === toks[j - 1].end + 1 && !consumed[j - 1]; j--) {
+    lead = toks[j - 1].start;
+    k = j - 2;
+  }
   m.lead = lead;
+  // Only one word of a longer name ('chicken' for 'chicken breasts'): a count would name the wrong thing.
+  if (f.tier === 3 && f.n === 1) m.partial = true;
 
   // Derived prep noun right after the mention ("lemon juice", "lemon wedges").
   const nx = toks[f.i + f.n];
@@ -397,6 +406,8 @@ function buildMention(action, toks, consumed, f, ingredientId, ing, inf, untilAt
   if (/\bseason(?:ing)?\b/i.test(upto) || /^\W*(?:to taste|as needed|if needed)/i.test(text.slice(m.derivedEnd ?? m.end))) m.seasoning = true;
   if (/\b(?:serve|serving|garnish|garnishing|topping|top|sprinkle|sprinkling|finish|finishing)\b/i.test(upto)
     || ['serve', 'garnish', 'top', 'sprinkle', 'finish'].includes(leadVerb(text))) m.serving = true;
+  // "grease the pan with butter": a thin coat, not the amount the dish itself needs.
+  if (!m.stated && !m.quantifier && COATING.test(text.slice(0, lead))) m.coating = true;
   if (untilAt >= 0 && m.start > untilAt) m.inUntil = true;
   return m;
 }
