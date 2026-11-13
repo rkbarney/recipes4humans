@@ -545,6 +545,8 @@ export function renderRecipe(root, ctx) {
     h('article', { class: 'recipe' },
       h('h1', null, result.title || recipe.title || 'Recipe'),
       source ? h('p', { class: 'source' }, 'Source: ', h('a', { href: source, rel: 'noopener noreferrer' }, host)) : null,
+      h('p', { class: 'row recipe-actions' },
+        h('button', { type: 'button', onclick: () => (ctx.onPrint ? ctx.onPrint() : window.print()) }, 'Print')),
       h('section', null, h('h2', null, 'Gather'), h('ul', { class: 'lines gather-list' }, (result.ingredients || []).map(ingredientLine))),
       h('section', null, h('h2', null, 'Prep'), h('ol', { class: 'lines' }, (result.prep || []).map((a) => actionLine(a, numbering.numbers.get(a.id))))),
       h('section', null, h('h2', null, 'Cook'), h('ol', { class: 'lines cook' }, numbering.groups.map((g) => cookGroup(g)))),
@@ -552,8 +554,42 @@ export function renderRecipe(root, ctx) {
         ? h('section', null, h('h2', null, 'Notes'), flags.other.map((f) => h('p', { class: 'note-block' }, f.message)))
         : null,
       h('p', { class: 'row' },
-        h('button', { type: 'button', onclick: () => window.print() }, 'Print'),
         h('button', { type: 'button', class: 'link', onclick: ctx.onReset }, 'Uncheck everything'))));
+}
+
+/**
+ * The recipe as a plain document for js/pdf.js: the same content as the print layout (Gather, Prep,
+ * Cook with grouped actions and Meanwhile prep, notes under steps), without the on-screen tools or flags.
+ * Used where window.print() does nothing (an iPhone home-screen app), to share a PDF instead.
+ * @returns {{title: string, subtitle?: string, blocks: object[]}}
+ */
+export function printDoc(recipe, result) {
+  const numbering = numberSteps(result);
+  const blocks = [];
+  const step = (a, label, indent) => {
+    blocks.push({ type: 'p', text: a.text, label: label ? `${label}.` : undefined, indent });
+    for (const n of a.notes || []) blocks.push({ type: 'p', text: n, indent: indent + 1, small: true });
+    const placed = resolveMeanwhile(a, result);
+    if (placed.length) {
+      blocks.push({ type: 'p', text: 'Meanwhile', indent: indent + 1, small: true });
+      for (const p of placed) step(p, null, indent + 1);
+    }
+  };
+  blocks.push({ type: 'h', text: 'Gather' });
+  for (const ing of result.ingredients || []) blocks.push({ type: 'p', text: gatherLine(ing, numbering) });
+  if ((result.prep || []).length) {
+    blocks.push({ type: 'h', text: 'Prep' });
+    for (const a of result.prep) step(a, String(numbering.numbers.get(a.id)), 0);
+  }
+  blocks.push({ type: 'h', text: 'Cook' });
+  // Grouped actions keep their full label ("6a", "6b") so Gather's "for step 6b" still matches.
+  for (const g of numbering.groups) for (const a of g.actions) step(a, numbering.labels.get(a.id), 0);
+  const source = recipe.sourceUrl || result.sourceUrl;
+  return {
+    title: result.title || recipe.title || 'Recipe',
+    subtitle: source ? `Source: ${source}` : undefined,
+    blocks,
+  };
 }
 
 // --- Library ---

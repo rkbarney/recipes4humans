@@ -6,6 +6,7 @@ import * as storage from './storage.js';
 import * as ui from './ui.js';
 import { CONFIG } from './config.js';
 import { extractRecipe } from './extract.js';
+import { buildPdf } from './pdf.js';
 
 const root = document.getElementById('app');
 const params = new URLSearchParams(location.search);
@@ -226,8 +227,28 @@ async function showRecipe(id) {
       scheduleSave(rec);
       showRecipe(id);
     },
+    onPrint: () => printRecipe(rec, result),
   });
   keepAwake();
+}
+
+/**
+ * Print. An iPhone home-screen app ignores window.print(), so there we share a PDF of the recipe
+ * instead: the share sheet offers Print (and Save to Files, Mail, AirDrop).
+ */
+function printRecipe(rec, result) {
+  if (navigator.standalone !== true || !navigator.canShare) {
+    window.print();
+    return;
+  }
+  const doc = ui.printDoc(rec, result);
+  const name = (doc.title.replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'recipe') + '.pdf';
+  const file = new File([buildPdf(doc)], name, { type: 'application/pdf' });
+  if (!navigator.canShare({ files: [file] })) {
+    window.print();
+    return;
+  }
+  navigator.share({ files: [file], title: doc.title }).catch(() => { /* cancelled or not allowed */ });
 }
 
 let libraryMessage = '';

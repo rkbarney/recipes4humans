@@ -1,4 +1,4 @@
-const CACHE_NAME = 'recipes4humans-v7';
+const CACHE_NAME = 'recipes4humans-v8';
 const base = self.location.pathname.replace(/\/[^/]*$/, '/') || '/';
 const SHELL_URLS = [
   base,
@@ -10,6 +10,7 @@ const SHELL_URLS = [
   base + 'js/storage.js',
   base + 'js/extract.js',
   base + 'js/ui.js',
+  base + 'js/pdf.js',
   base + 'js/engine/index.js',
   base + 'js/engine/types.js',
   base + 'js/engine/ingredients.js',
