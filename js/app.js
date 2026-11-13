@@ -5,6 +5,7 @@ import { rewrite, rewriteParts } from './engine/index.js';
 import * as storage from './storage.js';
 import * as ui from './ui.js';
 import { CONFIG } from './config.js';
+import { extractRecipe } from './extract.js';
 
 const root = document.getElementById('app');
 const params = new URLSearchParams(location.search);
@@ -30,7 +31,9 @@ async function fetchSample() {
 /** Run the engine on a saved recipe. While the engine is unfinished, ?demo=1 shows the saved sample. */
 async function runEngine(recipe) {
   try {
-    return recipe.parts ? rewriteParts(recipe.parts) : rewrite(recipe.text);
+    if (!recipe.parts) return rewrite(recipe.text);
+    // A recipe imported from a link carries its title and source with it.
+    return rewriteParts(recipe.sourceUrl ? { ...recipe.parts, title: recipe.title, sourceUrl: recipe.sourceUrl } : recipe.parts);
   } catch (err) {
     if (isNotImplemented(err) && DEMO) return fetchSample();
     throw err;
@@ -76,9 +79,59 @@ function go(hash) {
   else location.hash = hash;
 }
 
+let home = null;
+let navToken = 0;
+
+const MSG_NOT_ON = 'Link import is not switched on yet. Paste the recipe text instead.';
+const MSG_COULD_NOT_READ = "Couldn't read a recipe from that page. Some sites block this. Paste the recipe text instead.";
+const MSG_BAD_LINK = 'That does not look like a web link. It should start with http:// or https://.';
+
 function showHome(message) {
   releaseWakeLock();
-  ui.renderHome(root, { onSubmit: (text) => submit({ text }), onParts: showParts, message });
+  home = ui.renderHome(root, { onSubmit: (text) => submit({ text }), onParts: showParts, onLink: importLink, message });
+}
+
+/** The link as a URL object when it is an http or https address, else null. */
+function parseHttpUrl(link) {
+  try {
+    const u = new URL(link);
+    return u.protocol === 'http:' || u.protocol === 'https:' ? u : null;
+  } catch {
+    return null;
+  }
+}
+
+async function importLink(link) {
+  const screen = home;
+  if (!screen) return;
+  const url = parseHttpUrl(link);
+  if (!url) {
+    screen.setLinkStatus(MSG_BAD_LINK);
+    return;
+  }
+  if (!CONFIG.proxyUrl) {
+    screen.setLinkStatus(MSG_NOT_ON);
+    screen.openText();
+    return;
+  }
+  const token = navToken;
+  screen.setBusy(true);
+  screen.setLinkStatus('Reading the page...');
+  let found = null;
+  try {
+    const res = await fetch(`${CONFIG.proxyUrl}?url=${encodeURIComponent(url.href)}`, { signal: AbortSignal.timeout(20000) });
+    if (res.status === 200) found = extractRecipe(await res.text(), url.href);
+  } catch {
+    found = null;
+  }
+  if (token !== navToken) return; // the person went to another screen while we waited
+  if (!found) {
+    screen.setBusy(false);
+    screen.setLinkStatus(MSG_COULD_NOT_READ);
+    screen.openText(true);
+    return;
+  }
+  await submit({ parts: { ingredients: found.ingredients, steps: found.steps }, title: found.title, sourceUrl: found.sourceUrl });
 }
 
 function showParts(message) {
@@ -114,12 +167,12 @@ async function submit(input) {
   }
   const rec = {
     id: storage.newId(),
-    title: result.title || (input.text !== undefined ? ui.fallbackTitle(input.text) : 'Untitled recipe'),
     created: Date.now(),
     checked: {},
     ...input,
+    title: result.title || input.title || (input.text !== undefined ? ui.fallbackTitle(input.text) : 'Untitled recipe'),
   };
-  if (result.sourceUrl) rec.sourceUrl = result.sourceUrl;
+  if (!rec.sourceUrl && result.sourceUrl) rec.sourceUrl = result.sourceUrl;
   try { await storage.saveRecipe(rec); } catch { /* the page still works from memory */ }
   go(`#/recipe/${encodeURIComponent(rec.id)}`);
 }
@@ -218,6 +271,7 @@ async function showLibrary() {
 }
 
 function route() {
+  navToken++;
   const hash = location.hash || '#/';
   let m;
   if ((m = hash.match(/^#\/recipe\/(.+)$/))) showRecipe(decodeURIComponent(m[1]));

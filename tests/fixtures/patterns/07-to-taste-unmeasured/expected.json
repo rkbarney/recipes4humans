@@ -123,5 +123,13 @@
     }
   ],
   "split": [],
-  "flags": []
+  "flags": [
+    {
+      "code": "ambiguous-ingredient",
+      "actionContains": [
+        "simmer",
+        "pepper"
+      ]
+    }
+  ]
 }

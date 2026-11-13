@@ -426,6 +426,19 @@ describe('fixture ingredient lines', () => {
       { head: 'pepper', portions: [{}] },
       { head: 'chives', portions: [{ qty: 2, unit: 'tbsp' }] },
     ],
+    '11-bundled-steps': [
+      { head: 'olive oil', portions: [{ qty: 2, unit: 'tbsp' }] },
+      { head: 'onion', portions: [{ qty: 1 }] },
+      { head: 'garlic', portions: [{ qty: 3, unit: 'clove' }] },
+      { head: 'smoked paprika', portions: [{ qty: 1, unit: 'tsp' }] },
+      { head: 'cumin', portions: [{ qty: 1, unit: 'tsp' }] },
+      { head: 'chickpeas', portions: [{ qty: 1, unit: 'can', alt: { qty: 15, unit: 'oz' } }] },
+      { head: 'vegetable broth', portions: [{ qty: 1, unit: 'cup' }] },
+      { head: 'spinach', portions: [{ qty: 2, unit: 'cup' }] },
+      { head: 'butter', portions: [{ qty: 2, unit: 'tbsp' }] },
+      { head: 'salt', portions: [{}] },
+      { head: 'pepper', portions: [{}] },
+    ],
   };
 
   const fixtures = [golden(), ...patterns()];

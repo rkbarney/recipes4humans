@@ -200,7 +200,9 @@ function splitClauses(T) {
           continue;
         }
       }
-      if (w === 'and' && k > cs && !inUntil && !(T[k + 1] && T[k + 1].lower === 'then')) {
+      // Inside an "until" clause "and" joins conditions; ", and <verb>" after it starts the next instruction.
+      const afterComma = T[k - 1] && T[k - 1].type === 'comma';
+      if (w === 'and' && k > cs && (!inUntil || afterComma) && !(T[k + 1] && T[k + 1].lower === 'then')) {
         if (directVerb(T, k + 1, 'strict', false) >= 0) {
           let e = k;
           if (T[e - 1] && T[e - 1].type === 'comma') e--;

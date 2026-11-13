@@ -44,7 +44,8 @@ export function checkResult(result, expected) {
     for (const w of ea.contains) assert.ok(text.includes(w.toLowerCase()), `${where} should contain "${w}"`);
     for (const s of ea.amounts) assert.match(text, amountRegex(parseAmount(s)), `${where} should show "${s}"`);
     for (const s of ea.notAmounts) assert.doesNotMatch(text, amountRegex(parseAmount(s)), `${where} must not show "${s}"`);
-    for (const k of ea.noAmountFor ?? []) assert.doesNotMatch(text, new RegExp(`\\d\\s*(?:[a-z.]+\\s+){0,2}${k}`), `${where} must not insert an amount for ${k}`);
+    // Compared on the raw text: a comma ends a list item, so "2 tbsp chives, salt" is an amount for chives, not salt.
+    for (const k of ea.noAmountFor ?? []) assert.doesNotMatch(a.text.toLowerCase(), new RegExp(`\\d\\s*(?:[a-z.]+\\s+){0,2}${k}`), `${where} must not insert an amount for ${k}`);
     if (ea.kind) assert.equal(a.kind, ea.kind, where);
     if (ea.minutes) assert.deepEqual(a.minutes, ea.minutes, where);
     if (ea.noteContains) {

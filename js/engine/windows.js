@@ -4,7 +4,6 @@
  */
 import { isWaitingVerb } from './verbs.js';
 import { leadVerb } from './text-utils.js';
-import { parseQuantityPrefix } from './quantity.js';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
@@ -98,5 +97,3 @@ export function placeInWindows(prep, cook) {
   }
   return { prep: keep, cook: outCook, deferred };
 }
-
-export { parseQuantityPrefix };

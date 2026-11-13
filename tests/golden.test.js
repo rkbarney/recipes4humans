@@ -7,7 +7,7 @@ import { golden, splitInput } from './helpers/fixtures.js';
 import { rewriteParts } from '../js/engine/index.js';
 import { checkResult } from './helpers/check.js';
 
-const ENGINE_READY = false;
+const ENGINE_READY = true;
 
 describe('golden recipe', { todo: !ENGINE_READY }, () => {
   it('matches expected.json on structure', () => {

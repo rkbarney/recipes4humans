@@ -7,7 +7,7 @@ import assert from 'node:assert';
 import { golden, patterns, splitInput } from './helpers/fixtures.js';
 import { parseAmount, isDerivable } from './helpers/amounts.js';
 
-const FLAG_CODES = ['unused-ingredient', 'unknown-ingredient', 'amounts-mismatch', 'split-unresolved', 'collective-word', 'unparseable-quantity'];
+const FLAG_CODES = ['unused-ingredient', 'unknown-ingredient', 'amounts-mismatch', 'split-unresolved', 'collective-word', 'unparseable-quantity', 'ambiguous-ingredient'];
 const isStrArray = (a) => Array.isArray(a) && a.every((s) => typeof s === 'string' && s.length > 0);
 const isQty = (q) => (typeof q === 'number' && q > 0) || (Array.isArray(q) && q.length === 2 && q.every((n) => typeof n === 'number' && n > 0));
 const stem = (w) => w.toLowerCase().replace(/s$/, '');

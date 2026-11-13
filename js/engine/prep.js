@@ -2,7 +2,7 @@
  * Stage 5: turn prep notes into prep actions and separate Prep from Cook (SPEC, "5. Prep extraction").
  */
 import { formatQuantity } from './quantity.js';
-import { PREP_BASE, appliesHeat, isOvenPreheat, leadVerb, stem } from './text-utils.js';
+import { PREP_BASE, appliesHeat, isOvenPreheat } from './text-utils.js';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
@@ -63,9 +63,8 @@ function ingredientPrep(ingredients) {
     });
     for (const [prep, idxs] of groups) {
       const amount = amountText(ing, idxs);
-      const single = /^\d+(?:\.\d+)?$/.test(amount.replace(/[½¼¾⅓⅔⅛⅜⅝⅞]/g, '')) || /^[½¼¾⅓⅔⅛⅜⅝⅞]$/.test(amount);
-      const hasUnit = /[A-Za-z]/.test(amount);
-      const name = !hasUnit && (amount === '1' || /^[½¼¾⅓⅔⅛⅜⅝⅞]$/.test(amount)) && single ? singularName(ing.name) : ing.name;
+      // "Juice 1 lemon", "Dice ½ small red onion": a single item is named in the singular.
+      const name = amount === '1' || /^[½¼¾⅓⅔⅛⅜⅝⅞]$/.test(amount) ? singularName(ing.name) : ing.name;
       const subject = [amount, name].filter(Boolean).join(' ');
       out.push({
         id: `p${out.length + 1}`,
@@ -116,5 +115,3 @@ export function extractPrep(ingredients, actions) {
   items.sort((x, y) => x.key - y.key || x.rank - y.rank || x.n - y.n);
   return { prep: items.map((x) => x.a), cook };
 }
-
-export { leadVerb, stem };

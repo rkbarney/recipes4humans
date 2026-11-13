@@ -77,7 +77,7 @@ h2 { font-size: 1.2rem; margin: 1.75rem 0 .25rem; padding-bottom: .15rem; border
 h3 { font-size: 1rem; margin: 0 0 .25rem; color: var(--muted); font-weight: 600; }
 
 p { margin: .5rem 0; }
-.pitch { color: var(--muted); }
+.lede { color: var(--muted); margin-top: 0; }
 .note, .source { color: var(--muted); font-size: .85rem; }
 .message { color: var(--flag); min-height: 1.6em; }
 .sr-only {
@@ -125,8 +125,29 @@ button.link { border: 0; color: var(--link); text-decoration: underline; padding
 
 .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: .75rem 0; }
 
-.url-box { margin-top: 1.5rem; }
-.url-box label { margin-top: 0; color: var(--muted); }
+.link-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; margin-top: .5rem; }
+.link-row input { flex: 1 1 14rem; margin: 0; min-height: var(--touch); }
+.link-row button { flex: 0 0 auto; }
+.link-form .message { margin: .25rem 0 0; min-height: 0; }
+.link-form .message:empty { display: none; }
+
+/* The "paste the text" option */
+details.text-option { margin: .5rem 0 0; }
+details.text-option summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--touch);
+  color: var(--link);
+  text-decoration: underline;
+  cursor: pointer;
+}
+details.text-option[open] summary { margin-bottom: .25rem; }
+
+/* What it fixes */
+ul.fixes { list-style: none; margin: .5rem 0 0; padding: 0; }
+.fixes li { padding: .6rem 0; border-bottom: 1px solid var(--border); }
+.fixes li:last-child { border-bottom: 0; }
+.fixes strong { display: block; }
 
 /* Before and after */
 .example { display: grid; grid-template-columns: 1fr; gap: 12px; }

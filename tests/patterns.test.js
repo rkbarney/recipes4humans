@@ -7,7 +7,7 @@ import { patterns, splitInput } from './helpers/fixtures.js';
 import { rewriteParts } from '../js/engine/index.js';
 import { checkResult } from './helpers/check.js';
 
-const ENGINE_READY = false;
+const ENGINE_READY = true;
 
 describe('pattern recipes', { todo: !ENGINE_READY }, () => {
   for (const fx of patterns()) {

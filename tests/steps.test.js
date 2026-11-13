@@ -99,6 +99,12 @@ describe('not splitting', () => {
     assert.deepEqual(texts('Cook until the onions soften and brown.'), ['Cook until the onions soften and brown.']);
     assert.deepEqual(texts('Bake until the skin is crisp and the juices run clear.'), ['Bake until the skin is crisp and the juices run clear.']);
   });
+  it('splits at ", and <verb>" after an until clause, but not at a plain "and" inside it', () => {
+    assert.deepEqual(texts('Pour in the milk, whisking until smooth, and simmer until thickened, about 5 minutes.'),
+      ['Pour in the milk, whisking until smooth.', 'Simmer until thickened, about 5 minutes.']);
+    assert.deepEqual(texts('Cook until golden and crisp, and serve.'), ['Cook until golden and crisp.', 'Serve.']);
+    assert.deepEqual(texts('Simmer until the oats have softened, and the meatballs are cooked through.'), ['Simmer until the oats have softened, and the meatballs are cooked through.']);
+  });
   it('splits at ", then" and after the until clause ends', () => {
     assert.deepEqual(texts('Simmer until thick, then stir in the cream.'), ['Simmer until thick.', 'Stir in the cream.']);
     assert.deepEqual(texts('Cook until soft, stir in the garlic.'), ['Cook until soft.', 'Stir in the garlic.']);

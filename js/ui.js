@@ -293,18 +293,45 @@ const EXAMPLE_AFTER = [
   '4. Pour in 3 cups water and simmer 15 minutes.',
 ].join('\n');
 
+const FIXES = [
+  ['"Add the salt." How much?', 'The amount is on every line that uses it.'],
+  ['One step, five jobs.', 'One action per line. Tick it off, move on.'],
+  ['The prep nobody mentioned.', '"1 onion, diced" becomes a step, before the pan is hot.'],
+  ['"Use the remaining cheese." What remaining cheese?', 'Every split is shown up front: 5 oz for the sauce, 1 oz for the top.'],
+  ['Standing around while it simmers.', 'It tells you what to prep while you wait.'],
+  ['Lost your place again.', "Tap a line when it's done. It's still ticked when you pick the phone back up."],
+  ['The life story, the ads, the pop-up video.', 'None of it. Plain text.'],
+  ['Another account to create.', 'No sign-up. Your recipes stay on your phone.'],
+];
+
 /**
  * @param {HTMLElement} root
- * @param {{onSubmit: (text: string) => void, onParts: () => void, message?: string}} opts
+ * @param {{onSubmit: (text: string) => void, onParts: () => void, onLink: (url: string) => void, message?: string}} opts
+ * @returns {{setLinkStatus: (text: string) => void, setBusy: (busy: boolean) => void, openText: (focus?: boolean) => void}}
  */
-export function renderHome(root, { onSubmit, onParts, message }) {
+export function renderHome(root, { onSubmit, onParts, onLink, message }) {
+  const url = h('input', { id: 'url', type: 'url', placeholder: 'Paste a recipe link', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', inputmode: 'url' });
+  const linkButton = h('button', { type: 'submit', class: 'primary' }, 'Rewrite');
+  const linkStatus = h('p', { class: 'message', role: 'status' }, message || '');
+  const linkForm = h('form', {
+    class: 'link-form',
+    novalidate: true,
+    onsubmit: (e) => {
+      e.preventDefault();
+      onLink(url.value.trim());
+    },
+  },
+    h('label', { for: 'url', class: 'sr-only' }, 'Recipe link'),
+    h('div', { class: 'link-row' }, url, linkButton),
+    linkStatus);
+
   const text = h('textarea', { id: 'paste', rows: 10, placeholder: 'Paste the ingredients and the steps here', autocapitalize: 'off', spellcheck: 'false' });
-  const status = h('p', { class: 'message', role: 'status' }, message || '');
-  const form = h('form', {
+  const textStatus = h('p', { class: 'message', role: 'status' });
+  const textForm = h('form', {
     onsubmit: (e) => {
       e.preventDefault();
       if (!text.value.trim()) {
-        status.textContent = 'Paste a recipe first.';
+        textStatus.textContent = 'Paste a recipe first.';
         return;
       }
       onSubmit(text.value);
@@ -315,20 +342,36 @@ export function renderHome(root, { onSubmit, onParts, message }) {
     h('div', { class: 'row' },
       h('button', { type: 'submit', class: 'primary' }, 'Rewrite'),
       h('button', { type: 'button', class: 'link', onclick: onParts }, 'Paste ingredients and steps separately')),
-    status);
+    textStatus);
+
+  const details = h('details', { class: 'text-option', id: 'text-option' },
+    h('summary', null, 'Or paste the recipe text'),
+    textForm);
 
   mount(root,
-    h('h1', null, 'Cook from a recipe without losing your place'),
-    h('p', { class: 'pitch' }, 'Paste a recipe. Get one action per line, the amount on every use, and the hidden prep spelled out. It runs on your phone; nothing is sent anywhere.'),
-    form,
-    h('div', { class: 'url-box' },
-      h('label', { for: 'url' }, 'Recipe URL'),
-      h('input', { id: 'url', type: 'url', disabled: true, placeholder: 'https://' }),
-      h('p', { class: 'note' }, 'Coming soon: import from a web page.')),
+    h('h1', null, 'Recipes that read the way your mind works.'),
+    h('p', { class: 'lede' }, 'Paste a recipe link and get started.'),
+    linkForm,
+    details,
     h('h2', null, 'Before and after'),
     h('div', { class: 'example' },
       h('div', null, h('h3', null, 'The recipe says'), h('pre', null, EXAMPLE_BEFORE)),
-      h('div', null, h('h3', null, 'You cook from'), h('pre', null, EXAMPLE_AFTER))));
+      h('div', null, h('h3', null, 'You cook from'), h('pre', null, EXAMPLE_AFTER))),
+    h('h2', null, 'What it fixes'),
+    h('ul', { class: 'fixes' }, FIXES.map(([complaint, line]) =>
+      h('li', null, h('strong', null, complaint), ' ', line))));
+
+  return {
+    setLinkStatus: (t) => { linkStatus.textContent = t; },
+    setBusy: (busy) => {
+      linkButton.disabled = busy;
+      url.disabled = busy;
+    },
+    openText: (focus) => {
+      details.open = true;
+      if (focus) text.focus();
+    },
+  };
 }
 
 /** Two boxes, for when the engine cannot tell the ingredients from the steps. */

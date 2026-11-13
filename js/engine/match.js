@@ -21,6 +21,15 @@ const COLLECTIVE_ADJ = new Set(['dry', 'wet', 'remaining', 'other', 'rest', 'all
 
 const UNIT_STOP = (w) => !!matchUnitPrefix(w);
 
+/**
+ * Last words of names such as "beef broth", "garlic powder" and "lemon juice": the first word flavours the
+ * thing, it is not the thing. Those first words never stand for the ingredient on their own (tier 3).
+ */
+const FLAVOURED_NOUNS = new Set([
+  'broth', 'stock', 'sauce', 'wine', 'juice', 'oil', 'vinegar', 'paste', 'powder', 'flakes', 'extract', 'seasoning',
+  'syrup', 'cream', 'milk', 'butter', 'water', 'liqueur', 'bouillon', 'zest', 'salt', 'spice', 'mix', 'blend', 'rub',
+]);
+
 /** Words too loose to stand for an ingredient on their own. */
 const LOOSE_WORDS = new Set([
   'red', 'green', 'yellow', 'white', 'black', 'brown', 'golden', 'small', 'medium', 'large', 'baby', 'dried', 'fresh', 'sweet', 'hot',
@@ -80,7 +89,8 @@ function buildIndex(ingredients) {
         const seen = new Set([words[words.length - 1]]);
         // Tier 3: another word of the name, matched only exactly as written ("chicken" for "chicken thighs").
         // Never a colour or size word, and never a part of a hyphenated name ("red-pepper").
-        toks.slice(0, -1).forEach((t, k) => {
+        const flavoured = FLAVOURED_NOUNS.has(words[words.length - 1]);
+        if (!flavoured) toks.slice(0, -1).forEach((t, k) => {
           const w = words[k];
           if (w.length < 3 || STOPWORDS.has(w) || seen.has(w) || t.hy || LOOSE_WORDS.has(t.lower)) return;
           seen.add(w);

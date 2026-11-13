@@ -2,7 +2,7 @@
   "name": "instructions written as one block of text",
   "counts": {
     "prep": 1,
-    "cook": 6
+    "cook": 7
   },
   "actions": [
     {
@@ -66,13 +66,22 @@
       "contains": [
         "add",
         "lentils",
-        "broth",
-        "boil"
+        "broth"
       ],
       "amounts": [
         "1 cup lentils",
         "4 cup broth"
       ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "bring",
+        "boil"
+      ],
+      "amounts": [],
       "notAmounts": [],
       "meanwhile": []
     },

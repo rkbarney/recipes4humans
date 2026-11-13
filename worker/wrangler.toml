@@ -1,0 +1,13 @@
+name = "recipes4humans-proxy"
+main = "index.js"
+compatibility_date = "2025-03-01"
+
+# Rate limit: 60 requests per minute per IP (backstop in case the Referer is faked).
+# namespace_id only has to be unique within your Cloudflare account.
+[[ratelimits]]
+name = "PROXY_RATE_LIMITER"
+namespace_id = "2001"
+
+  [ratelimits.simple]
+  limit = 60
+  period = 60
