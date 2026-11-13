@@ -15,6 +15,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:8080',
   'https://rkbarney.github.io', // GitHub Pages
   'https://richardbarney.com', // the same site on its own domain (GitHub Pages serves it here)
+  'https://www.richardbarney.com', // the bare domain redirects here, so this is what browsers send
 ];
 
 const USER_AGENT = 'recipes4humans/1.0 (+https://github.com/rkbarney/recipes4humans)';
