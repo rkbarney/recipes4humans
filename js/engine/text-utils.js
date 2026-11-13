@@ -64,7 +64,7 @@ export const PREP_BASE = {
   squeezed: 'squeeze', cut: 'cut', cubed: 'cube', shredded: 'shred', crushed: 'crush', crumbled: 'crumble',
   trimmed: 'trim', mashed: 'mash', beaten: 'beat', toasted: 'toast', quartered: 'quarter', seeded: 'seed',
   cored: 'core', thawed: 'thaw', julienned: 'julienne', torn: 'tear', pitted: 'pit', deveined: 'devein',
-  stemmed: 'stem', cooked: 'cook', washed: 'wash', scrubbed: 'scrub',
+  stemmed: 'stem', cooked: 'cook', washed: 'wash', scrubbed: 'scrub', sifted: 'sift',
 };
 
 /** Nouns derived from a prep verb, as they appear after an ingredient ("lemon juice", "lemon wedges"). */
@@ -145,4 +145,13 @@ export function appliesHeat(text) {
 /** True for "Preheat the oven" (and toaster oven): a heat action that does not end the Prep stage. */
 export function isOvenPreheat(text) {
   return leadVerb(text) === 'preheat' && /\boven\b/i.test(text);
+}
+
+const COUNT_UNITS = new Set(['cup', 'clove', 'sprig', 'stalk', 'slice', 'can', 'bunch', 'head', 'piece', 'stick', 'package', 'pinch']);
+
+/** A quantity as text, with a count unit in the plural when the amount is more than one: "2 cloves", "1 clove", "5 to 7 sprigs". */
+export function showQuantity(qty, unit, format) {
+  const n = Array.isArray(qty) ? qty[1] : qty;
+  const u = unit && COUNT_UNITS.has(unit) && n > 1 ? (/(?:ch|sh)$/.test(unit) ? `${unit}es` : `${unit}s`) : unit;
+  return format(qty, u);
 }

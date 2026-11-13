@@ -8,7 +8,7 @@
 import {
   formatQuantity, addQuantities, subtractQuantities, convertQuantity, parseAmount,
 } from './quantity.js';
-import { stem, DERIVED_PREP } from './text-utils.js';
+import { stem, DERIVED_PREP, showQuantity } from './text-utils.js';
 
 /** @typedef {import('./types.js').Flag} Flag */
 
@@ -18,7 +18,16 @@ const PARTIAL = new Set(['some', 'most']);
 const FRACTIONAL = new Set(['half', 'third', 'quarter', 'two-thirds', 'three-quarters']);
 const REMAINING = new Set(['remaining', 'rest']);
 
-const fmt = (q) => formatQuantity(q.qty, q.unit);
+const fmt = (q) => showQuantity(q.qty, q.unit, formatQuantity);
+
+/** "lemon" for 2 lemons: the word as the step wrote it, in the plural when the amount is more than one and has no unit. */
+function plural(word, q) {
+  const n = Array.isArray(q.qty) ? q.qty[1] : q.qty;
+  if (q.unit || n <= 1 || /s$/i.test(word)) return word;
+  if (/(?:ch|sh|x|[^aeiou]o)$/i.test(word)) return `${word}es`;
+  if (/[^aeiou]y$/i.test(word)) return `${word.slice(0, -1)}ies`;
+  return `${word}s`;
+}
 const toQ = (p) => (p && p.qty !== undefined ? { qty: p.qty, ...(p.unit ? { unit: p.unit } : {}) } : null);
 const bounds = (q) => (Array.isArray(q.qty) ? q.qty : [q.qty, q.qty]);
 
@@ -201,11 +210,13 @@ function resolveIngredient(ing, ms, actionById) {
    */
   const insertFor = (m, text) => {
     const word = actionById.get(m.actionId).text.slice(m.start, m.end);
-    if ((m.derived !== undefined || m.prepWord) && !(T && T.unit)) return { mode: 'paren', text: `from ${text} ${word}` };
-    if (m.quantifier && !/\bof(?:\s+the)?\s*$/i.test(actionById.get(m.actionId).text.slice(0, m.lead))) {
+    if (m.derived === 'part') return null; // "the egg whites": the amount of whole eggs does not describe them
+    if ((m.derived !== undefined || m.prepWord) && !(T && T.unit)) return { mode: 'paren', text: `from ${text} ${plural(word, T)}` };
+    if (m.quantifier) {
       return { mode: 'paren', text: `${text} ${word} in all` };
     }
-    return { mode: 'inline', text };
+    const noun = T && !T.unit && text === totalText ? plural(word, T) : word;
+    return { mode: 'inline', text, ...(noun !== word ? { noun } : {}) };
   };
 
   const stay = () => {
@@ -259,7 +270,7 @@ function resolveIngredient(ing, ms, actionById) {
       const eq = sameQ(used, T);
       const eqAlt = alt ? sameQ(used, alt) : null;
       if (eq === false && eqAlt !== true) {
-        mismatch(mains[mains.length - 1], `The steps state ${fmt(used)} of ${name}, but the ingredient list says ${fmt(T)}.`);
+        mismatch(mains[mains.length - 1], `The steps use ${fmt(used)} of the ${name}, but the ingredient list says ${fmt(T)}.`);
       }
     }
     return finish();
@@ -368,14 +379,13 @@ function resolveIngredient(ing, ms, actionById) {
         unresolvedFlag(m, splitMsg);
       }
     }
-    void action;
   }
   if (!portions.length) stay();
   if (!unresolved && known && used && T) {
     const eq = sameQ(used, T);
     const eqAlt = alt ? sameQ(used, alt) : null;
     if (eq === false && eqAlt !== true) {
-      mismatch(mains[mains.length - 1], `The steps use ${fmt(used)} of ${name}, but the ingredient list says ${fmt(T)}.`);
+      mismatch(mains[mains.length - 1], `The steps use ${fmt(used)} of the ${name}, but the ingredient list says ${fmt(T)}.`);
     }
   }
   return finish();
@@ -413,7 +423,7 @@ export function resolveAmounts(ingredients, actions, mentions) {
       let total;
       if (sum) total = fmt(sum);
       else {
-        total = own.map((p) => formatQuantity(p.qty, p.unit)).join(' plus ');
+        total = own.map((p) => showQuantity(p.qty, p.unit, formatQuantity)).join(' plus ');
         if (own.length === 1 && own[0].alt) total += ` (${fmt(own[0].alt)})`;
       }
       ing.total = total;
@@ -427,7 +437,7 @@ export function resolveAmounts(ingredients, actions, mentions) {
       const a = res.assign.get(m);
       if (!a) continue;
       uses.get(m.actionId).push({ start: m.start, use: { ingredientId: ing.id, portion: a.portion } });
-      if (a.insert) edits.get(m.actionId).push(editFor(m, a.insert));
+      if (a.insert) edits.get(m.actionId).push(editFor(m, a.insert, actionById.get(m.actionId).text));
     }
   }
 
@@ -440,14 +450,19 @@ export function resolveAmounts(ingredients, actions, mentions) {
 }
 
 /** The text change for one insertion. Amounts go in front of the noun phrase, or in parentheses after it. */
-function editFor(m, insert) {
+function editFor(m, insert, actionText) {
   if (insert.mode === 'paren') {
     const at = m.derivedEnd ?? m.end;
     const text = insert.text;
     return { from: at, to: at, text: ` (${text})` };
   }
-  if (m.article && !m.quantifier) return { from: m.article.start, to: m.lead, text: `${insert.text} ` };
-  return { from: m.lead, to: m.lead, text: `${insert.text} ` };
+  const from = m.article && !m.quantifier ? m.article.start : m.lead;
+  if (insert.noun) {
+    // "Chop 3 tomatoes": the noun takes the plural when the amount has no unit.
+    const keep = actionText.slice(m.lead, m.start);
+    return { from, to: m.end, text: `${insert.text} ${keep}${insert.noun}` };
+  }
+  return { from, to: m.lead, text: `${insert.text} ` };
 }
 
 // Kept for tests: how a derived noun maps to a prep word.

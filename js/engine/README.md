@@ -9,7 +9,7 @@ Pure functions, no browser or network code. Types are in `types.js`. The pipelin
     (ingredients, actions) -> extractPrep -> { prep, cook }
     (prep, cook) -> placeInWindows -> { prep, cook, deferred }
 
-`rewriteParts` concatenates the flags of all stages, then returns `{ ingredients, prep, cook, flags }` (a `Rewrite`; `ingredients` are the `ParsedIngredient`s with extra fields allowed). `rewrite(text)` first splits sections by headings, strips bullets and step numbers, then calls `rewriteParts`.
+`rewriteParts` concatenates the flags of all stages, then returns `{ title?, sourceUrl?, steps, ingredients, prep, cook, deferred, flags }` (a `Rewrite`; `ingredients` are the `ParsedIngredient`s with extra fields allowed). `rewriteParts({ingredients, steps, title?, sourceUrl?})` takes the two parts already separated. `rewrite(text)` finds the title and the two blocks by headings (Ingredients; Preparation, Instructions, Directions, Method or Steps, in either order), strips bullets, numbering and "Step N" lines, ignores "Yield:" lines, then calls `rewriteParts`. When it cannot find both blocks it throws an `Error` whose `code` is `'no-sections'`; the app then asks for the two parts separately.
 
 ## Stage contracts
 
@@ -22,6 +22,16 @@ Stages 1 and 2 are independent and can be built in parallel; stages 3 to 6 consu
 5. `extractPrep(ingredients, actions)`. Prep action ids are `p1..pN`; `prep` is ordered as described in the spec, `cook` keeps the order of the input actions.
 6. `placeInWindows(prep, cook)`. Sets `kind: 'waiting'` on window actions, fills `meanwhile` with the ids of placed prep actions, and moves those actions out of `prep` into a third list, `deferred`. It returns `{ prep, cook, deferred }`, and `rewriteParts` returns `{ ingredients, prep, cook, deferred, flags }`, so the UI can look a placed action up by id. Placed prep actions are not counted in the Prep stage (see tests/fixtures/README.md).
 
-Flag codes: `unused-ingredient`, `unknown-ingredient`, `amounts-mismatch`, `split-unresolved`, `collective-word`, `unparseable-quantity`.
+## Matching and amount decisions
 
-Every stage function currently throws `new Error('not implemented')`.
+- Names match in three tiers: the full head, the last word of the head, then another word of the name exactly as written. Longest match wins. The third tier is off for names ending in broth, oil, powder, flakes and similar, for colour and size words, and for hyphenated parts, so "the beef" never means beef broth.
+- Two ingredients that fit one word with no distinguishing descriptor ("pepper" for black pepper and red-pepper flakes) give `ambiguous-ingredient`: no mention, no amount.
+- Product words (sauce, dough, batter, mixture, meatballs, marinade, dressing, filling) and ingredient-group names are never ingredients. A verb at the start of an action ("Oil the pan") is not a mention.
+- An ingredient used once gets its full amount. A stated amount is kept and nothing is inserted. "Remaining" and "the rest" are the total minus earlier uses; "half" and "a third" are scaled; "most of" with a reserve in the notes shows the reserve. With no amounts anywhere the total goes on the first use only, with `split-unresolved`.
+- Never given an amount: unmeasured ingredients, seasoning uses, parts ("egg whites"), mentions inside "until" clauses, and anything the engine marked `unsure`.
+- A prep-bound use of a unit-less total gets "(from 1 lemon)". A count unit is pluralised in what is inserted ("2 cloves garlic").
+- Ingredient prep actions carry `original.ingredientId`. Only those can move into a window.
+
+Flag codes: `unused-ingredient`, `unknown-ingredient`, `ambiguous-ingredient`, `amounts-mismatch`, `split-unresolved`, `collective-word`, `unparseable-quantity`.
+
+A sentence with no instruction becomes a note on the previous action (stage 2). One that comes before any action has nothing to attach to and is dropped.

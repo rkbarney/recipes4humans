@@ -224,6 +224,8 @@ export function matchIngredients(ingredients, actions) {
         const bestTier = Math.min(...cands.map((c) => c.tier));
         const word = n === 1 ? singular(toks[i].lower) : null;
         if (n === 1 && i === verbAt && isCookingVerb(toks[i].lower)) {
+          // The step does use the ingredient, but this word is the instruction, so there is no phrase to put an amount in.
+          for (const c of cands) mentioned.add(c.idx);
           consumed[i] = true;
           continue;
         }
@@ -337,7 +339,8 @@ function buildMention(action, toks, consumed, f, ingredientId, ing, inf, untilAt
   while (k >= 0 && absorbed < 3) {
     const t = toks[k];
     if (t.type !== 'w' || consumed[k]) break;
-    if (STOPWORDS.has(t.lower) || COOKING_VERBS.has(t.lower) || UNIT_STOP(t.text)) break;
+    const ownDescriptor = inf.descriptorWords.has(singular(t.lower)); // "brown sugar": brown is a verb, here a descriptor
+    if (STOPWORDS.has(t.lower) || (COOKING_VERBS.has(t.lower) && !ownDescriptor) || UNIT_STOP(t.text)) break;
     lead = t.start;
     if (isPrepWord(t.lower) && !m.prepWord) m.prepWord = t.lower;
     k--;
@@ -366,20 +369,23 @@ function buildMention(action, toks, consumed, f, ingredientId, ing, inf, untilAt
   }
 
   // A stated amount, then a quantifier before it or before the noun phrase.
-  const stated = statedBefore(text, lead) || articleA;
+  const stated = statedBefore(text, lead);
   let quantEnd = lead;
   if (stated) {
     m.stated = stated;
     quantEnd = stated.start;
+  } else if (articleA) {
+    // "a lemon": the step already says how many. Do not compare it with the total, and do not replace it.
+    m.unsure = true;
   } else {
     // A unit or a number just before the noun phrase that we could not read as an amount: leave it alone.
     const pre = text.slice(0, lead).replace(/\s+(?:of\s+)?(?:the\s+)?$/i, '');
     const lastWord = /([A-Za-z]+|\d[\d.\/]*|[½¼¾⅓⅔⅛⅜⅝⅞])$/.exec(pre);
     if (lastWord && (UNIT_STOP(lastWord[1]) || /^[\d½¼¾⅓⅔⅛⅜⅝⅞]/.test(lastWord[1]) || NUMBER_WORDS.has(lastWord[1].toLowerCase()))) m.unsure = true;
-    // "a pot of water", "the juice of the lemon": the amount belongs to the thing before "of", not to this noun.
-    if (/\bof\s+(?:the\s+)?$/i.test(text.slice(0, lead))) m.unsure = true;
   }
   const q = quantifierBefore(text, quantEnd);
+  // "a pot of water", "the juice of the lemon": the amount belongs to the thing before "of", not to this noun.
+  if (!stated && !q && /\bof\s+(?:the\s+)?$/i.test(text.slice(0, lead))) m.unsure = true;
   if (q) {
     m.quantifier = q.quantifier;
     if (q.fraction) m.fraction = q.fraction;

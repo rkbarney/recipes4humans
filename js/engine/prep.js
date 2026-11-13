@@ -2,7 +2,7 @@
  * Stage 5: turn prep notes into prep actions and separate Prep from Cook (SPEC, "5. Prep extraction").
  */
 import { formatQuantity } from './quantity.js';
-import { PREP_BASE, appliesHeat, isOvenPreheat } from './text-utils.js';
+import { PREP_BASE, appliesHeat, isOvenPreheat, showQuantity } from './text-utils.js';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
@@ -27,9 +27,16 @@ export function prepInstruction(prep, subject) {
   const k = words.findIndex((w) => Object.hasOwn(PREP_BASE, w.toLowerCase().replace(/[^a-z]/g, '')));
   if (k < 0) return `Prepare ${subject} (${prep}).`;
   const before = words.slice(0, k).filter((w) => ADVERB.test(w));
-  const verb = PREP_BASE[words[k].toLowerCase().replace(/[^a-z]/g, '')];
+  const baseOf = (w) => PREP_BASE[String(w).toLowerCase().replace(/[^a-z]/g, '')];
+  let verb = baseOf(words[k]);
+  // "zested and juiced": both instructions go in front of the subject, "Zest and juice 1 lemon."
+  let next = k + 1;
+  while (words[next] && /^and$/i.test(words[next]) && words[next + 1] && baseOf(words[next + 1])) {
+    verb += ` and ${baseOf(words[next + 1])}`;
+    next += 2;
+  }
   let rest = '';
-  for (let i = k + 1; i < words.length; i++) {
+  for (let i = next; i < words.length; i++) {
     const w = words[i];
     const key = w.toLowerCase().replace(/[^a-z]/g, '');
     if (w === ',') { rest += ','; continue; }
@@ -46,7 +53,7 @@ function amountText(ing, idxs) {
   const ps = idxs.map((i) => ing.portions[i]);
   if (ps.length === 1 && ps[0].qty !== undefined) {
     const p = ps[0];
-    return `${formatQuantity(p.qty, p.unit)}${p.alt ? ` (${formatQuantity(p.alt.qty, p.alt.unit)})` : ''}`;
+    return `${showQuantity(p.qty, p.unit, formatQuantity)}${p.alt ? ` (${showQuantity(p.alt.qty, p.alt.unit, formatQuantity)})` : ''}`;
   }
   return ing.total || '';
 }

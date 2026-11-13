@@ -179,6 +179,11 @@ describe('spec 1: plus', () => {
     const { ing } = one('1 cup flour, plus 2 tablespoons for dusting');
     assert.deepEqual(ing.portions, [{ qty: 1, unit: 'cup' }, { qty: 2, unit: 'tbsp' }]);
   });
+  it('a "+" between two measures means "plus" (bug fix: it used to keep only the first measure)', () => {
+    const { ing } = one('1 cup + 2 tablespoons flour');
+    assert.equal(ing.head, 'flour');
+    assert.deepEqual(ing.portions, [{ qty: 1, unit: 'cup' }, { qty: 2, unit: 'tbsp' }]);
+  });
   it('a plus that is not another measure of the same thing is flagged, not guessed', () => {
     const { ing, flags, p } = one('2 eggs plus 1 yolk');
     assert.equal(p.qty, undefined);

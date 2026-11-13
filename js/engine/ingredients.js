@@ -128,7 +128,9 @@ function fractionSegments(content) {
  * @returns {{items: object[], flagMessage?: string}}  items are ingredients without ids and group.
  */
 function parseLine(raw) {
-  let text = raw.replace(/ /g, ' ').replace(/\s+/g, ' ').trim().replace(/^(?:[-*•▢☐]\s+)/, '');
+  let text = raw.replace(/ /g, ' ').replace(/\s+/g, ' ').trim().replace(/^(?:[-*•▢☐]\s+)/, '')
+    // "1 cup + 2 tablespoons flour" is "1 cup plus 2 tablespoons flour"; reading only the first part would be a wrong amount.
+    .replace(/\s\+\s/g, ' plus ');
 
   const parens = [];
   text = text.replace(/\(([^()]*)\)/g, (_, c) => { parens.push(c.trim()); return ' '; });
