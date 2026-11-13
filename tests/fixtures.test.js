@@ -109,7 +109,7 @@ describe('golden fixture', () => {
 
 describe('pattern fixtures', () => {
   const all = patterns();
-  it('has ten patterns', () => assert.equal(all.length, 10));
+  it('has eleven patterns', () => assert.equal(all.length, 11));
   for (const fx of all) {
     it(`${fx.name} is well formed`, () => {
       const parts = validate(fx);

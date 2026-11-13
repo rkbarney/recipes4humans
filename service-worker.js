@@ -1,4 +1,4 @@
-const CACHE_NAME = 'recipes4humans-v0';
+const CACHE_NAME = 'recipes4humans-v1';
 const base = self.location.pathname.replace(/\/[^/]*$/, '/') || '/';
 const SHELL_URLS = [
   base,
@@ -17,6 +17,9 @@ const SHELL_URLS = [
   base + 'js/engine/amounts.js',
   base + 'js/engine/prep.js',
   base + 'js/engine/windows.js',
+  base + 'icons/icon.svg',
+  base + 'icons/icon-192.png',
+  base + 'icons/icon-512.png',
 ];
 
 self.addEventListener('install', (e) => {

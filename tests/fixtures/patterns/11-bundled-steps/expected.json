@@ -1,0 +1,205 @@
+{
+  "name": "bundled steps: \", then\", \"and <verb>\", comma lists, semicolons, until clauses, participles, opening adverbials, nouns that look like verbs",
+  "counts": {
+    "prep": 0,
+    "cook": 15
+  },
+  "actions": [
+    {
+      "stage": "cook",
+      "contains": [
+        "heat",
+        "oil",
+        "skillet",
+        "shimmering"
+      ],
+      "amounts": [
+        "2 tbsp oil"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "add",
+        "onion"
+      ],
+      "amounts": [
+        "1 onion"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "cook",
+        "stirring",
+        "soft",
+        "golden"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "minutes": [
+        4,
+        4
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "add",
+        "garlic",
+        "paprika",
+        "cumin"
+      ],
+      "amounts": [
+        "3 clove garlic",
+        "1 tsp paprika",
+        "1 tsp cumin"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "stir"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "minutes": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "pour",
+        "chickpeas",
+        "broth"
+      ],
+      "amounts": [
+        "1 can chickpeas",
+        "1 cup broth"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "bring",
+        "simmer"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "cook",
+        "reduced",
+        "tender"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "minutes": [
+        10,
+        10
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "stir",
+        "spinach"
+      ],
+      "amounts": [
+        "2 cup spinach"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "let",
+        "wilt"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "minutes": [
+        1,
+        1
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "dot",
+        "butter"
+      ],
+      "amounts": [
+        "2 tbsp butter"
+      ],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "season",
+        "taste",
+        "salt",
+        "pepper"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": [],
+      "noAmountFor": [
+        "salt",
+        "pepper"
+      ]
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "serve"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "spoon",
+        "bowls"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": []
+    },
+    {
+      "stage": "cook",
+      "contains": [
+        "finish",
+        "pinch",
+        "pepper"
+      ],
+      "amounts": [],
+      "notAmounts": [],
+      "meanwhile": []
+    }
+  ],
+  "split": [],
+  "flags": []
+}

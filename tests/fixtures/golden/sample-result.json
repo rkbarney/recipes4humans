@@ -1,0 +1,631 @@
+{
+  "title": "Lemony Chicken and Feta Meatball Soup",
+  "steps": [
+    "In a medium bowl, combine chicken, feta, ¼ cup oats, the grated onion, most of the dill (reserve about 2 tablespoons for garnish), cumin, ½ teaspoon turmeric and 1 teaspoon salt. Combine gently (hands work best) without overworking the meat. With wet hands, shape into about 25 balls, 1½ inches each. This makes enough for four.",
+    "Heat the olive oil in a large Dutch oven over medium until shimmering. Cook the diced onion with a little salt for about 2 minutes, until it begins to soften. Add 1 tablespoon turmeric and the red-pepper flakes, stirring about 30 seconds until fragrant. Nestle the meatballs in the pot, pushing the onions to the sides. Brown the meatballs for 5 to 7 minutes, until golden on two sides.",
+    "Pour in the broth and the remaining ½ cup oats, tilting the pot to distribute them without disturbing the meatballs. Bring to an active simmer over medium-high, seasoning with salt. Simmer about 4 minutes, stirring gently, until the oats have softened and the meatballs are cooked through.",
+    "Stir in the spinach and the lemon juice for about 2 minutes, until wilted. Adjust the seasoning to taste. Ladle into bowls, topping each with black pepper, the remaining 2 tablespoons dill, lemon wedges and more red-pepper flakes."
+  ],
+  "ingredients": [
+    {
+      "id": "i1",
+      "raw": "1 pound ground chicken or turkey",
+      "name": "ground chicken",
+      "alternates": [
+        "turkey"
+      ],
+      "portions": [
+        {
+          "qty": 1,
+          "unit": "lb",
+          "usedIn": "a1"
+        }
+      ]
+    },
+    {
+      "id": "i2",
+      "raw": "½ cup crumbled feta",
+      "name": "crumbled feta",
+      "alternates": [],
+      "portions": [
+        {
+          "qty": 0.5,
+          "unit": "cup",
+          "usedIn": "a1"
+        }
+      ]
+    },
+    {
+      "id": "i3",
+      "raw": "¾ cup rolled oats, divided",
+      "name": "rolled oats",
+      "alternates": [],
+      "divided": true,
+      "portions": [
+        {
+          "qty": 0.25,
+          "unit": "cup",
+          "usedIn": "a1"
+        },
+        {
+          "qty": 0.5,
+          "unit": "cup",
+          "usedIn": "a9"
+        }
+      ]
+    },
+    {
+      "id": "i4",
+      "raw": "1 small red onion (½ diced, and ½ grated, then squeezed dry)",
+      "name": "small red onion",
+      "alternates": [],
+      "portions": [
+        {
+          "qty": 0.5,
+          "prep": "diced",
+          "usedIn": "a5"
+        },
+        {
+          "qty": 0.5,
+          "prep": "grated, then squeezed dry",
+          "usedIn": "a1"
+        }
+      ]
+    },
+    {
+      "id": "i5",
+      "raw": "⅓ cup packed fresh dill, finely chopped",
+      "name": "packed fresh dill",
+      "alternates": [],
+      "portions": [
+        {
+          "note": "most of it",
+          "usedIn": "a1"
+        },
+        {
+          "qty": 2,
+          "unit": "tbsp",
+          "usedIn": "a14"
+        }
+      ]
+    },
+    {
+      "id": "i6",
+      "raw": "1 tablespoon ground cumin",
+      "name": "ground cumin",
+      "alternates": [],
+      "portions": [
+        {
+          "qty": 1,
+          "unit": "tbsp",
+          "usedIn": "a1"
+        }
+      ]
+    },
+    {
+      "id": "i7",
+      "raw": "½ teaspoon plus 1 tablespoon ground turmeric",
+      "name": "ground turmeric",
+      "alternates": [],
+      "portions": [
+        {
+          "qty": 0.5,
+          "unit": "tsp",
+          "usedIn": "a1"
+        },
+        {
+          "qty": 1,
+          "unit": "tbsp",
+          "usedIn": "a6"
+        }
+      ]
+    },
+    {
+      "id": "i8",
+      "raw": "Kosher salt and black pepper",
+      "name": "kosher salt",
+      "alternates": [],
+      "portions": [
+        {
+          "qty": 1,
+          "unit": "tsp",
+          "usedIn": "a1"
+        },
+        {
+          "note": "more to season"
+        }
+      ]
+    },
+    {
+      "id": "i9",
+      "raw": "Kosher salt and black pepper",
+      "name": "black pepper",
+      "alternates": [],
+      "portions": [
+        {
+          "usedIn": "a14"
+        }
+      ]
+    },
+    {
+      "id": "i10",
+      "raw": "3 tablespoons olive oil",
+      "name": "olive oil",
+      "alternates": [],
+      "portions": [
+        {
+          "qty": 3,
+          "unit": "tbsp",
+          "usedIn": "a4"
+        }
+      ]
+    },
+    {
+      "id": "i11",
+      "raw": "½ teaspoon red-pepper flakes, plus more for serving",
+      "name": "red-pepper flakes",
+      "alternates": [],
+      "portions": [
+        {
+          "qty": 0.5,
+          "unit": "tsp",
+          "usedIn": "a6"
+        },
+        {
+          "tag": "serving",
+          "usedIn": "a14"
+        }
+      ]
+    },
+    {
+      "id": "i12",
+      "raw": "4 cups low-sodium chicken broth or water",
+      "name": "low-sodium chicken broth",
+      "alternates": [
+        "water"
+      ],
+      "portions": [
+        {
+          "qty": 4,
+          "unit": "cup",
+          "usedIn": "a9"
+        }
+      ]
+    },
+    {
+      "id": "i13",
+      "raw": "4 packed cups baby spinach",
+      "name": "baby spinach",
+      "alternates": [],
+      "portions": [
+        {
+          "qty": 4,
+          "unit": "cup",
+          "usedIn": "a12"
+        }
+      ]
+    },
+    {
+      "id": "i14",
+      "raw": "2 lemons (1 juiced, 1 cut into wedges)",
+      "name": "lemons",
+      "alternates": [],
+      "portions": [
+        {
+          "qty": 1,
+          "prep": "juiced",
+          "usedIn": "p4"
+        },
+        {
+          "qty": 1,
+          "prep": "cut into wedges",
+          "usedIn": "p5"
+        }
+      ]
+    }
+  ],
+  "prep": [
+    {
+      "kind": "hands-on",
+      "notes": [],
+      "meanwhile": [],
+      "uses": [
+        {
+          "ingredientId": "i4",
+          "portion": 0
+        }
+      ],
+      "id": "p1",
+      "text": "Halve 1 small red onion. Dice one half.",
+      "original": {
+        "step": 0,
+        "start": 0,
+        "end": 0
+      }
+    },
+    {
+      "kind": "hands-on",
+      "notes": [],
+      "meanwhile": [],
+      "uses": [
+        {
+          "ingredientId": "i4",
+          "portion": 1
+        }
+      ],
+      "id": "p2",
+      "text": "Grate the other half, then squeeze it in a paper towel to remove the liquid.",
+      "original": {
+        "step": 0,
+        "start": 0,
+        "end": 0
+      }
+    },
+    {
+      "kind": "hands-on",
+      "notes": [],
+      "meanwhile": [],
+      "uses": [
+        {
+          "ingredientId": "i5",
+          "portion": 0
+        }
+      ],
+      "id": "p3",
+      "text": "Finely chop ⅓ cup packed fresh dill.",
+      "original": {
+        "step": 0,
+        "start": 0,
+        "end": 0
+      }
+    },
+    {
+      "kind": "hands-on",
+      "notes": [
+        "reserve about 2 tbsp dill for garnish"
+      ],
+      "meanwhile": [],
+      "uses": [
+        {
+          "ingredientId": "i1",
+          "portion": 0
+        },
+        {
+          "ingredientId": "i2",
+          "portion": 0
+        },
+        {
+          "ingredientId": "i3",
+          "portion": 0
+        },
+        {
+          "ingredientId": "i4",
+          "portion": 1
+        },
+        {
+          "ingredientId": "i5",
+          "portion": 0
+        },
+        {
+          "ingredientId": "i6",
+          "portion": 0
+        },
+        {
+          "ingredientId": "i7",
+          "portion": 0
+        },
+        {
+          "ingredientId": "i8",
+          "portion": 0
+        }
+      ],
+      "original": {
+        "step": 1,
+        "start": 0,
+        "end": 178
+      },
+      "id": "a1",
+      "text": "In a medium bowl, combine 1 lb ground chicken, ½ cup feta, ¼ cup oats, the grated onion, most of the dill, 1 tbsp cumin, ½ tsp turmeric and 1 tsp salt."
+    },
+    {
+      "kind": "hands-on",
+      "notes": [
+        "hands work best"
+      ],
+      "meanwhile": [],
+      "uses": [],
+      "original": {
+        "step": 1,
+        "start": 179,
+        "end": 241
+      },
+      "id": "a2",
+      "text": "Combine gently without overworking the meat."
+    },
+    {
+      "kind": "hands-on",
+      "notes": [
+        "This makes enough for four."
+      ],
+      "meanwhile": [],
+      "uses": [],
+      "original": {
+        "step": 1,
+        "start": 242,
+        "end": 300
+      },
+      "id": "a3",
+      "text": "With wet hands, shape into about 25 balls, 1½ inches each."
+    }
+  ],
+  "cook": [
+    {
+      "until": "shimmering",
+      "kind": "hands-on",
+      "notes": [],
+      "meanwhile": [],
+      "uses": [
+        {
+          "ingredientId": "i10",
+          "portion": 0
+        }
+      ],
+      "original": {
+        "step": 2,
+        "start": 0,
+        "end": 70
+      },
+      "id": "a4",
+      "text": "Heat 3 tbsp olive oil in a large Dutch oven over medium until shimmering."
+    },
+    {
+      "minutes": [
+        2,
+        2
+      ],
+      "until": "it begins to soften",
+      "kind": "hands-on",
+      "notes": [],
+      "meanwhile": [],
+      "uses": [
+        {
+          "ingredientId": "i4",
+          "portion": 0
+        },
+        {
+          "ingredientId": "i8",
+          "portion": 1
+        }
+      ],
+      "original": {
+        "step": 2,
+        "start": 71,
+        "end": 158
+      },
+      "id": "a5",
+      "text": "Cook the diced onion with a little salt for about 2 minutes, until it begins to soften."
+    },
+    {
+      "minutes": [
+        0.5,
+        0.5
+      ],
+      "until": "fragrant",
+      "kind": "hands-on",
+      "notes": [],
+      "meanwhile": [],
+      "uses": [
+        {
+          "ingredientId": "i7",
+          "portion": 1
+        },
+        {
+          "ingredientId": "i11",
+          "portion": 0
+        }
+      ],
+      "original": {
+        "step": 2,
+        "start": 159,
+        "end": 253
+      },
+      "id": "a6",
+      "text": "Add 1 tbsp turmeric and ½ tsp red-pepper flakes, stirring about 30 seconds until fragrant."
+    },
+    {
+      "kind": "hands-on",
+      "notes": [],
+      "meanwhile": [],
+      "uses": [],
+      "original": {
+        "step": 2,
+        "start": 254,
+        "end": 319
+      },
+      "id": "a7",
+      "text": "Nestle the meatballs in the pot, pushing the onions to the sides."
+    },
+    {
+      "minutes": [
+        5,
+        7
+      ],
+      "until": "golden on two sides",
+      "kind": "waiting",
+      "notes": [],
+      "meanwhile": [
+        "p4",
+        "p5"
+      ],
+      "uses": [],
+      "original": {
+        "step": 2,
+        "start": 320,
+        "end": 386
+      },
+      "id": "a8",
+      "text": "Brown the meatballs for 5 to 7 minutes, until golden on two sides."
+    },
+    {
+      "kind": "hands-on",
+      "notes": [],
+      "meanwhile": [],
+      "uses": [
+        {
+          "ingredientId": "i12",
+          "portion": 0
+        },
+        {
+          "ingredientId": "i3",
+          "portion": 1
+        }
+      ],
+      "original": {
+        "step": 3,
+        "start": 0,
+        "end": 116
+      },
+      "id": "a9",
+      "text": "Pour in 4 cups broth and the remaining ½ cup oats, tilting the pot to distribute them without disturbing the meatballs."
+    },
+    {
+      "kind": "hands-on",
+      "notes": [],
+      "meanwhile": [],
+      "uses": [],
+      "original": {
+        "step": 3,
+        "start": 117,
+        "end": 181
+      },
+      "id": "a10",
+      "text": "Bring to an active simmer over medium-high, seasoning with salt."
+    },
+    {
+      "minutes": [
+        4,
+        4
+      ],
+      "until": "the oats have softened and the meatballs are cooked through",
+      "kind": "waiting",
+      "notes": [],
+      "meanwhile": [],
+      "uses": [],
+      "original": {
+        "step": 3,
+        "start": 182,
+        "end": 289
+      },
+      "id": "a11",
+      "text": "Simmer about 4 minutes, stirring gently, until the oats have softened and the meatballs are cooked through."
+    },
+    {
+      "minutes": [
+        2,
+        2
+      ],
+      "until": "wilted",
+      "kind": "hands-on",
+      "notes": [],
+      "meanwhile": [],
+      "uses": [
+        {
+          "ingredientId": "i13",
+          "portion": 0
+        }
+      ],
+      "original": {
+        "step": 4,
+        "start": 0,
+        "end": 74
+      },
+      "id": "a12",
+      "text": "Stir in 4 cups spinach and the lemon juice for about 2 minutes, until wilted."
+    },
+    {
+      "kind": "hands-on",
+      "notes": [],
+      "meanwhile": [],
+      "uses": [],
+      "original": {
+        "step": 4,
+        "start": 75,
+        "end": 105
+      },
+      "id": "a13",
+      "text": "Adjust the seasoning to taste."
+    },
+    {
+      "kind": "hands-on",
+      "notes": [],
+      "meanwhile": [],
+      "uses": [
+        {
+          "ingredientId": "i9",
+          "portion": 0
+        },
+        {
+          "ingredientId": "i5",
+          "portion": 1
+        },
+        {
+          "ingredientId": "i11",
+          "portion": 1
+        }
+      ],
+      "original": {
+        "step": 4,
+        "start": 106,
+        "end": 230
+      },
+      "id": "a14",
+      "text": "Ladle into bowls, topping each with black pepper, the remaining 2 tbsp dill, lemon wedges and more red-pepper flakes."
+    }
+  ],
+  "deferred": [
+    {
+      "kind": "hands-on",
+      "notes": [],
+      "meanwhile": [],
+      "uses": [
+        {
+          "ingredientId": "i14",
+          "portion": 0
+        }
+      ],
+      "id": "p4",
+      "text": "Juice 1 lemon.",
+      "original": {
+        "step": 0,
+        "start": 0,
+        "end": 0
+      }
+    },
+    {
+      "kind": "hands-on",
+      "notes": [],
+      "meanwhile": [],
+      "uses": [
+        {
+          "ingredientId": "i14",
+          "portion": 1
+        }
+      ],
+      "id": "p5",
+      "text": "Cut 1 lemon into wedges.",
+      "original": {
+        "step": 0,
+        "start": 0,
+        "end": 0
+      }
+    }
+  ],
+  "flags": [
+    {
+      "actionId": "a5",
+      "ingredientId": "i8",
+      "code": "split-unresolved",
+      "message": "The recipe says \"a little salt\" here and \"seasoning with salt\" later, with no amounts. Only 1 tsp is stated (for the meatballs), so no amount was added to this line."
+    }
+  ]
+}
