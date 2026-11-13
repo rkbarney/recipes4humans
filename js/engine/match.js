@@ -7,13 +7,16 @@
  */
 import { parseQuantityPrefix, matchUnitPrefix } from './quantity.js';
 import { parseIngredients } from './ingredients.js';
-import { COOKING_VERBS } from './verbs.js';
+import { COOKING_VERBS, isCookingVerb } from './verbs.js';
 import {
   tokenize, singular, stem, STOPWORDS, DERIVED_PREP, isPrepWord, leadVerb, FRACTION_GLYPHS,
 } from './text-utils.js';
 
 /** Things made by an earlier step: never an ingredient (unless an ingredient is named exactly that). */
 const PRODUCT_WORDS = new Set(['meatball', 'sauce', 'dough', 'mixture', 'batter', 'marinade', 'dressing', 'filling']);
+
+/** Words after an ingredient that name a part of it ("egg whites"): the whole amount does not apply to the part. */
+const PART_WORDS = new Set(['whites', 'white', 'yolks', 'yolk', 'shells', 'stems', 'leaves', 'seeds', 'cores', 'rinds', 'rind', 'skins', 'skin']);
 
 /** Plural-only words that stand for several ingredients. Version 1 flags them and inserts nothing. */
 const COLLECTIVE_SINGLE = new Set(['spices', 'seasonings', 'herbs', 'aromatics', 'toppings', 'vegetables', 'veggies']);
@@ -199,6 +202,9 @@ export function matchIngredients(ingredients, actions) {
     const consumed = new Array(toks.length).fill(false);
     const untilAt = untilOffset(text);
     const found = [];
+    // "Oil the pan", "Salt the water", "Cream the butter": a verb at the start of the action is not an ingredient.
+    const lv = leadVerb(text);
+    const verbAt = toks.findIndex((t) => t.type === 'w' && t.lower === lv);
 
     const wordRun = (i, n) => {
       for (let k = 0; k < n; k++) {
@@ -217,6 +223,10 @@ export function matchIngredients(ingredients, actions) {
         if (!cands.length) continue;
         const bestTier = Math.min(...cands.map((c) => c.tier));
         const word = n === 1 ? singular(toks[i].lower) : null;
+        if (n === 1 && i === verbAt && isCookingVerb(toks[i].lower)) {
+          consumed[i] = true;
+          continue;
+        }
         // A made-earlier word ("the sauce") is a product unless an ingredient is named exactly that.
         if (n === 1 && bestTier > 1 && isProduct(word, groups, cands)) {
           consumed[i] = true;
@@ -337,8 +347,9 @@ function buildMention(action, toks, consumed, f, ingredientId, ing, inf, untilAt
 
   // Derived prep noun right after the mention ("lemon juice", "lemon wedges").
   const nx = toks[f.i + f.n];
-  if (nx && nx.type === 'w' && !consumed[f.i + f.n] && Object.hasOwn(DERIVED_PREP, nx.lower) && toks[f.i + f.n].start - last.end <= 1) {
-    m.derived = DERIVED_PREP[nx.lower];
+  if (nx && nx.type === 'w' && !consumed[f.i + f.n] && toks[f.i + f.n].start - last.end <= 1
+    && (Object.hasOwn(DERIVED_PREP, nx.lower) || PART_WORDS.has(nx.lower))) {
+    m.derived = Object.hasOwn(DERIVED_PREP, nx.lower) ? DERIVED_PREP[nx.lower] : 'part';
     m.derivedEnd = nx.end;
     consumed[f.i + f.n] = true;
   }
@@ -365,6 +376,8 @@ function buildMention(action, toks, consumed, f, ingredientId, ing, inf, untilAt
     const pre = text.slice(0, lead).replace(/\s+(?:of\s+)?(?:the\s+)?$/i, '');
     const lastWord = /([A-Za-z]+|\d[\d.\/]*|[½¼¾⅓⅔⅛⅜⅝⅞])$/.exec(pre);
     if (lastWord && (UNIT_STOP(lastWord[1]) || /^[\d½¼¾⅓⅔⅛⅜⅝⅞]/.test(lastWord[1]) || NUMBER_WORDS.has(lastWord[1].toLowerCase()))) m.unsure = true;
+    // "a pot of water", "the juice of the lemon": the amount belongs to the thing before "of", not to this noun.
+    if (/\bof\s+(?:the\s+)?$/i.test(text.slice(0, lead))) m.unsure = true;
   }
   const q = quantifierBefore(text, quantEnd);
   if (q) {
