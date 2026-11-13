@@ -18,3 +18,10 @@ identifies itself as `recipes4humans/1.0 (+https://github.com/rkbarney/recipes4h
    `js/config.js`.
 
 To try it from a script, see `scripts/probe-sites.js`.
+
+## Checking real sites
+
+`npm run live` (from the project folder, on your own computer) reads `local-recipes/probe-urls.txt`, fetches
+each link through the deployed Worker, extracts the recipe, runs the engine and the stress-test invariants, and
+writes `local-recipes/live-report.md`. The first link in the file is the control and must work. It needs the
+network, so it is not part of `npm test`; nothing it saves is committed (`local-recipes/` is git-ignored).
