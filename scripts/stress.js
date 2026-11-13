@@ -67,7 +67,8 @@ function amountsIn(text) {
     const lo = num(m[1]);
     const hi = m[2] ? num(m[2]) : lo;
     const w = (m[3] || '').toLowerCase();
-    const unit = UNIT_WORDS[w] ?? '';
+    const afterWord = text[m.index + m[0].length];
+    const unit = w === 'c' && afterWord === '.' ? 'cup' : (UNIT_WORDS[w] ?? '');
     // A bare number is only an amount when a word follows (a count); degrees and times are skipped below.
     if (!unit && !m[3]) continue;
     if (!unit && /^(?:minutes?|mins?|seconds?|secs?|hours?|hrs?|inch(?:es)?|degrees?|f|c|x|times|pm|am|th|st|nd|rd)$/.test(w)) continue;
@@ -96,6 +97,20 @@ function derivable(raw) {
   // "Dash of nutmeg", "Pinch of salt": a unit word with no number means one of it.
   const lead = /^\s*(dash|pinch)\b/i.exec(line);
   if (lead) own.push({ lo: 1, hi: 1, unit: UNIT_WORDS[lead[1].toLowerCase()] });
+  // "2 (14.5-oz.) cans tomatoes": a count of containers and the size of each.
+  const pack = /(\d+)\s*\(\s*(?:(\d+(?:\.\d+)?)\s*(?:-|to)\s*)?(\d+(?:\.\d+)?)[\s-]*(oz|ounces?|g|grams?|ml|lbs?|pounds?)\.?\s*\)\s*(cans?|packages?|jars?|boxes|box|bottles?|bags?|sticks?)/i.exec(line);
+  if (pack) {
+    const kind = UNIT_WORDS[pack[5].toLowerCase()] ?? pack[5].toLowerCase().replace(/e?s$/, '');
+    own.push({ lo: Number(pack[1]), hi: Number(pack[1]), unit: kind });
+    const size = UNIT_WORDS[pack[4].toLowerCase()];
+    if (size) {
+      if (pack[2]) own.push({ lo: Number(pack[2]), hi: Number(pack[2]), unit: size });
+      own.push({ lo: Number(pack[3]), hi: Number(pack[3]), unit: size });
+    }
+  }
+  // "1 (1o-oz.) package": a typo in the size still leaves the count of packages.
+  const typo = /(\d+)\s*\([^)]*\)\s*(cans?|packages?|jars?|boxes|box|bottles?|bags?)/i.exec(line);
+  if (typo && !pack) own.push({ lo: Number(typo[1]), hi: Number(typo[1]), unit: UNIT_WORDS[typo[2].toLowerCase()] ?? typo[2].toLowerCase().replace(/e?s$/, '') });
   const set = [...own];
   const add = (lo, hi, unit) => set.push({ lo, hi, unit });
   // Totals per unit family: the sum of all same-unit amounts (a "plus" line), and each amount of the line.
@@ -160,6 +175,19 @@ function checkAmounts(r) {
       const k = pool.findIndex((s) => s.lo === am.lo && s.hi === am.hi && s.unit === am.unit);
       if (k >= 0) { pool.splice(k, 1); continue; }
       let cands = used.filter((ing) => isDerivable(am, ing.raw));
+      if (am.unit === '') {
+        // For a bare count the matched text already includes the word after the number ("1 onion").
+        const next = am.text.replace(/^[\d\s½¼¾⅓⅔⅛./–-]+/, '');
+        const key = next ? words(next)[0] : null;
+        const nameMatches = (ing) => words(`${ing.head || ''} ${ing.name || ''}`).includes(key);
+        const named = key ? used.filter(nameMatches) : [];
+        if (named.length) cands = cands.filter((c) => named.includes(c));
+        else if (key) {
+          // "the chopped onion (from 1 onion)": the count names an ingredient the action does not list as used.
+          const other = [...byId.values()].filter((ing) => nameMatches(ing) && isDerivable(am, ing.raw));
+          if (other.length) continue;
+        }
+      }
       if (cands.length > 1) {
         // Prefer the ingredient whose name follows the amount in the text, then one whose line states the amount.
         const after = a.text.slice(am.at + am.text.length).toLowerCase().split(/\s+/).slice(0, 6).join(' ');
@@ -173,6 +201,7 @@ function checkAmounts(r) {
         continue;
       }
       const ing = cands[0];
+      if (a.id.startsWith('p') && a.original && a.original.ingredientId) continue; // restates the line's own amount
       inserted.push({ ing, am, action: a.id, portions: new Set((a.uses || []).filter((u) => u.ingredientId === ing.id).map((u) => u.portion)) });
     }
   }

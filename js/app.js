@@ -83,7 +83,6 @@ let home = null;
 let navToken = 0;
 
 const MSG_NOT_ON = 'Link import is not switched on yet. Paste the recipe text instead.';
-const MSG_COULD_NOT_READ = "Couldn't read a recipe from that page. Some sites block this. Paste the recipe text instead.";
 const MSG_BAD_LINK = 'That does not look like a web link. It should start with http:// or https://.';
 
 function showHome(message) {
@@ -118,16 +117,22 @@ async function importLink(link) {
   screen.setBusy(true);
   screen.setLinkStatus('Reading the page...');
   let found = null;
+  let status = null;
+  let gotPage = false;
   try {
     const res = await fetch(`${CONFIG.proxyUrl}?url=${encodeURIComponent(url.href)}`, { signal: AbortSignal.timeout(20000) });
-    if (res.status === 200) found = extractRecipe(await res.text(), url.href);
+    status = res.status;
+    if (res.status === 200) {
+      found = extractRecipe(await res.text(), url.href);
+      gotPage = !found;
+    }
   } catch {
     found = null;
   }
   if (token !== navToken) return; // the person went to another screen while we waited
   if (!found) {
     screen.setBusy(false);
-    screen.setLinkStatus(MSG_COULD_NOT_READ);
+    screen.setLinkStatus(ui.linkFailureMessage(status, url.hostname, gotPage));
     screen.openText(true);
     return;
   }

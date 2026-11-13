@@ -157,8 +157,14 @@ function parseLine(raw) {
   text = text.replace(/\(([^()]*)\)/g, (_, c) => { parens.push(c.trim()); return ' '; });
   text = text.replace(/[()]/g, ' ').replace(/\s+/g, ' ').trim();
 
-  const comma = text.indexOf(',');
-  const headText = (comma < 0 ? text : text.slice(0, comma)).trim();
+  let comma = text.indexOf(',');
+  // "boneless, skinless chicken breasts": a comma between descriptor words does not end the name.
+  const onlyDescriptors = (t) => {
+    const words = t.trim().split(/\s+/).filter((w) => !/^[\d½¼¾⅓⅔⅛./-]+$/.test(w) && !/^(?:cups?|tbsp|tsp|oz|lbs?|g|ml|c\.?|can|cans)\.?$/i.test(w));
+    return words.length > 0 && words.every((w) => DESCRIPTORS.has(descriptorKey(w)));
+  };
+  while (comma >= 0 && onlyDescriptors(text.slice(0, comma)) && /[A-Za-z]/.test(text.slice(comma + 1))) comma = text.indexOf(',', comma + 1);
+  const headText = (comma < 0 ? text : text.slice(0, comma)).replace(/,/g, '').replace(/\s+/g, ' ').trim();
   const tailText = comma < 0 ? '' : text.slice(comma + 1);
 
   // ---- quantity and unit

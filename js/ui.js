@@ -162,7 +162,10 @@ export function gatherLine(ing, numbering) {
   const serving = portions.filter((p) => p.tag === 'serving');
   const total = ingredientTotal(ing);
   const name = [ing.name, ...(ing.alternates || [])].join(' or ');
-  let text = [total ? formatAmount(total) : '', name].filter(Boolean).join(' ');
+  // resolveAmounts leaves the whole-ingredient amount as display text ("3 cups", "600 g (1.2 lb)"); re-reading the
+  // raw line instead loses units written as "c." or "600g/".
+  const totalText = typeof ing.total === 'string' && ing.total ? ing.total : total ? formatAmount(total) : '';
+  let text = [totalText, name].filter(Boolean).join(' ');
   if (main.length > 1) {
     // Prep words name a portion only when the portions differ by prep ("½ diced, ½ grated"); otherwise it is by step.
     const showPrep = new Set(main.map((p) => p.prep || '')).size > 1;
@@ -560,4 +563,19 @@ export function renderIosHint(container, onDismiss) {
     h('div', { class: 'hint', role: 'note' },
       h('p', null, 'To keep your saved recipes, add this app to your home screen: tap the Share button, then "Add to Home Screen". Safari can clear data from sites that are not added.'),
       h('button', { type: 'button', class: 'mini', onclick: onDismiss }, 'Dismiss')));
+}
+
+/**
+ * What to tell the person when a link could not be turned into a recipe.
+ * @param {number | null} status  HTTP status the Worker returned, or null when it could not be reached
+ * @param {string} host           the site's host name
+ * @param {boolean} gotPage       true when the page loaded but held no recipe data
+ */
+export function linkFailureMessage(status, host, gotPage = false) {
+  const name = String(host || 'That site').replace(/^www\./, '');
+  const paste = 'Paste the recipe text instead.';
+  if (gotPage) return `No recipe data on that page. ${paste}`;
+  if (status === 401 || status === 402 || status === 403 || status === 429) return `${name} does not let other apps read its recipes. ${paste}`;
+  if (status === 404 || status === 410) return `That page was not found. Check the link, or paste the recipe text instead.`;
+  return `Could not read a recipe from ${name}. ${paste}`;
 }

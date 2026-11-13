@@ -8,7 +8,7 @@
 import {
   formatQuantity, addQuantities, subtractQuantities, convertQuantity, parseAmount,
 } from './quantity.js';
-import { stem, DERIVED_PREP, showQuantity } from './text-utils.js';
+import { stem, singular, DERIVED_PREP, showQuantity } from './text-utils.js';
 
 /** @typedef {import('./types.js').Flag} Flag */
 
@@ -217,7 +217,9 @@ function resolveIngredient(ing, ms, actionById) {
       return { mode: 'paren', text: `${text} ${word} in all` };
     }
     // A word that is only part of the name ("chicken" for "chicken breasts") is not pluralised: "4 chickens" would be another thing.
-    const noun = T && !T.unit && text === totalText && !m.partial ? plural(word, T) : word;
+    let noun = T && !T.unit && text === totalText && !m.partial ? plural(word, T) : word;
+    // The step says "the onions" but the line has exactly one: "1 onion", not "1 onions".
+    if (T && !T.unit && !m.partial && text === totalText && T.qty === 1 && /[^s]s$/i.test(word)) noun = singular(word.toLowerCase());
     return { mode: 'inline', text, ...(noun !== word ? { noun } : {}) };
   };
 
