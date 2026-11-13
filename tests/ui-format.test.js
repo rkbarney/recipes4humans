@@ -163,3 +163,12 @@ test('Gather: an unmeasured use with a stated use names no step', () => {
   const rest = { name: 'rice', alternates: [], total: { qty: 1, unit: 'cup' }, portions: [{ qty: 0.5, unit: 'cup', usedIn: 'a1' }, { note: 'the rest', usedIn: 'a5' }] };
   assert.equal(gatherLine(rest, n), '1 cup rice: ½ cup for step 2, the rest for step 9');
 });
+
+test('the homepage example can be pasted and gives what it shows', async () => {
+  const { rewrite } = await import('../js/engine/index.js');
+  const { EXAMPLE_BEFORE, EXAMPLE_AFTER } = await import('../js/ui.js');
+  const r = rewrite(EXAMPLE_BEFORE);
+  assert.deepEqual(r.flags, []);
+  const after = EXAMPLE_AFTER.split('\n').filter((l) => /^\d+\. /.test(l)).map((l) => l.replace(/^\d+\. /, ''));
+  assert.deepEqual([...r.prep, ...r.cook].map((a) => a.text), after);
+});

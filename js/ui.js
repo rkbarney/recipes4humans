@@ -286,19 +286,27 @@ export function renderMessage(root, { title, text, actions = [] }) {
 
 // --- Landing / paste ---
 
-const EXAMPLE_BEFORE = [
-  'Ingredients: 2 cups rice, 1 tbsp butter, 1 onion (diced), 3 cups water',
+// The homepage example. tests/ui-format.test.js runs EXAMPLE_BEFORE through the engine and checks that
+// every line of EXAMPLE_AFTER is what it produces, so the example can be pasted and gives what it shows.
+export const EXAMPLE_BEFORE = [
+  'Ingredients',
+  '2 cups rice',
+  '1 tbsp butter',
+  '1 onion, diced',
+  '3 cups water',
   '',
+  'Directions',
   'Melt the butter in a pot, add the rice and onion, then pour in the water and simmer 15 minutes.',
 ].join('\n');
 
-const EXAMPLE_AFTER = [
+export const EXAMPLE_AFTER = [
   'Prep',
   '1. Dice 1 onion.',
   'Cook',
   '2. Melt 1 tbsp butter in a pot.',
-  '3. Add 2 cups rice and the diced onion.',
-  '4. Pour in 3 cups water and simmer 15 minutes.',
+  '3. Add 2 cups rice and 1 onion.',
+  '4. Pour in 3 cups water.',
+  '5. Simmer 15 minutes.',
 ].join('\n');
 
 const FIXES = [
