@@ -10,6 +10,7 @@
   --on-accent: #fff;
   --flag: #8a4b00;
   --touch: 44px;
+  --numw: 2.6ch; /* width of a step number column: room for "10." */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -178,7 +179,7 @@ ul.lines, ol.lines, .meanwhile ul { list-style: none; margin: 0; padding: 0; }
   padding: .55rem 0;
   min-height: var(--touch);
 }
-.check .num { min-width: 2ch; flex: none; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.check .num { min-width: var(--numw); flex: none; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
 .check .body { display: block; flex: 1; min-width: 0; }
 .check .text { display: block; }
 .check .note { display: block; font-size: .8rem; line-height: 1.4; color: var(--muted); margin-top: .15rem; }
@@ -187,7 +188,7 @@ ul.lines, ol.lines, .meanwhile ul { list-style: none; margin: 0; padding: 0; }
 .line.done .text, .line.done .num { text-decoration: line-through; }
 .line.done .check { opacity: .5; }
 
-.tools { display: flex; gap: 4px; margin: -.35rem 0 0 calc(2ch + .6rem); }
+.tools { display: flex; gap: 4px; margin: -.35rem 0 0 calc(var(--numw) + .6rem); }
 .gather .tools { margin-left: 0; }
 button.mini {
   border: 0;
@@ -201,13 +202,13 @@ button.mini {
 }
 button.mini[aria-expanded="true"] { font-weight: 700; }
 
-.panel { margin: 0 0 .5rem calc(2ch + .6rem); padding: 6px 10px; border-left: 3px solid var(--border); font-size: .9rem; line-height: 1.45; }
+.panel { margin: 0 0 .5rem calc(var(--numw) + .6rem); padding: 6px 10px; border-left: 3px solid var(--border); font-size: .9rem; line-height: 1.45; }
 .gather .panel { margin-left: 0; }
 .panel p { margin: .25rem 0; }
 .flag-panel { border-left-color: var(--flag); }
 .orig-label { display: block; color: var(--muted); font-size: .75rem; }
 
-.meanwhile { margin: 0 0 .5rem calc(2ch + .6rem); padding-left: 12px; border-left: 3px solid var(--border); }
+.meanwhile { margin: 0 0 .5rem calc(var(--numw) + .6rem); padding-left: 12px; border-left: 3px solid var(--border); }
 .meanwhile .label { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-top: .35rem; }
 .meanwhile .line { border-bottom: 0; }
 .meanwhile .tools, .meanwhile .panel { margin-left: 0; }
@@ -233,6 +234,37 @@ ul.library { list-style: none; margin: 0; padding: 0; }
   .example { grid-template-columns: 1fr 1fr; }
 }
 
+/* A recipe paragraph that gave several actions: its number on the left, the actions indented (a, b, c) */
+.group { display: grid; grid-template-columns: var(--numw) 1fr; column-gap: .6rem; border-bottom: 1px solid var(--border); padding-top: 2px; }
+.group:last-child { border-bottom: 0; }
+.gnum { white-space: nowrap; text-align: right; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; padding-top: .55rem; }
+ol.lines.sub { border-left: 3px solid var(--border); padding-left: 10px; min-width: 0; }
+.sub > .line { border-bottom: 1px dotted var(--border); }
+.sub > .line:last-child { border-bottom: 0; }
+
+/* Print: one dense page where it can. Plain black on white, no controls, Gather in two columns. */
 @media print {
-  .bar, #hint, .tools, button { display: none; }
+  @page { margin: .5in; }
+  :root, :root[data-theme="dark"] { --bg: #fff; --text: #000; --muted: #333; --border: #999; --link: #000; color-scheme: light; }
+  html, body { background: #fff; color: #000; }
+  body { font-size: 10pt; line-height: 1.25; }
+  .bar, #hint, .row, .tools, .panel, .note-block { display: none !important; }
+  #app { max-width: none; padding: 0; }
+  h1 { font-size: 15pt; line-height: 1.15; margin: 0 0 2pt; }
+  h2 { font-size: 8.5pt; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid #000; margin: 7pt 0 2pt; padding-bottom: 1pt; }
+  .source { font-size: 8pt; margin: 0 0 2pt; }
+  .source a { color: #000; text-decoration: none; }
+  ul.gather-list { column-count: 2; column-gap: 18pt; }
+  .line { border-bottom: 0; padding: 0; break-inside: avoid; }
+  .check { padding: 1pt 0; min-height: 0; gap: 5pt; font: inherit; color: inherit; }
+  .check .num { min-width: var(--numw); color: #000; }
+  .check .note { font-size: 8pt; margin-top: 0; color: #333; }
+  .line.done .text, .line.done .num { text-decoration: none; }
+  .line.done .check { opacity: 1; }
+  .group { grid-template-columns: var(--numw) 1fr; column-gap: 5pt; border-bottom: 0; padding-top: 0; break-inside: avoid; }
+  .gnum { padding-top: 1pt; color: #000; }
+  ol.lines.sub { border-left: 1px solid #777; padding-left: 6pt; }
+  .sub > .line { border-bottom: 0; }
+  .meanwhile { margin: 0 0 1pt var(--numw); padding-left: 6pt; border-left: 1px dotted #777; }
+  .meanwhile .label { font-size: 7.5pt; margin-top: 0; color: #333; }
 }

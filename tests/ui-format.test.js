@@ -50,11 +50,24 @@ test('steps are numbered continuously across Prep and Cook', () => {
   assert.equal(n.numbers.get('a14'), 17);
 });
 
+test('a recipe paragraph that gave several actions is one numbered group with lettered actions', () => {
+  const n = numberSteps(sample);
+  assert.deepEqual(n.groups.map((g) => g.actions.length), [5, 3, 3]);
+  assert.deepEqual(n.groups.map((g) => g.number), [7, 8, 9]);
+  assert.equal(n.labels.get('p1'), '1');
+  assert.equal(n.labels.get('a1'), '4');
+  assert.equal(n.labels.get('a4'), '7a');
+  assert.equal(n.labels.get('a8'), '7e');
+  assert.equal(n.labels.get('a14'), '9c');
+  // Every group's actions come from one original paragraph.
+  for (const g of n.groups) assert.equal(new Set(g.actions.map((a) => a.original.step)).size, 1);
+});
+
 test('deferred actions take their window action number and are not numbered themselves', () => {
   const n = numberSteps(sample);
   assert.equal(n.numbers.has('p4'), false);
-  assert.equal(stepNumberFor('p4', n), 11);
-  assert.equal(stepNumberFor('a9', n), 12);
+  assert.equal(stepNumberFor('p4', n), '7e');
+  assert.equal(stepNumberFor('a9', n), '8a');
   assert.equal(stepNumberFor('nope', n), undefined);
 });
 
@@ -69,8 +82,8 @@ test('meanwhile ids resolve to the placed prep actions, in order', () => {
 
 test('Gather line shows the split by step number', () => {
   const n = numberSteps(sample);
-  assert.equal(gatherLine(byId('i3'), n), '¾ cup rolled oats: ¼ cup for step 4, ½ cup for step 12');
-  assert.equal(gatherLine(byId('i7'), n), 'ground turmeric: ½ tsp for step 4, 1 tbsp for step 9');
+  assert.equal(gatherLine(byId('i3'), n), '¾ cup rolled oats: ¼ cup for step 4, ½ cup for step 8a');
+  assert.equal(gatherLine(byId('i7'), n), 'ground turmeric: ½ tsp for step 4, 1 tbsp for step 7c');
 });
 
 test('Gather line: single use, alternates, serving, prep portions, unmeasured', () => {
@@ -82,7 +95,7 @@ test('Gather line: single use, alternates, serving, prep portions, unmeasured', 
   assert.equal(gatherLine(byId('i4'), n), '1 small red onion: ½ diced, ½ grated, then squeezed dry');
   assert.equal(gatherLine(byId('i9'), n), 'black pepper');
   assert.equal(gatherLine(byId('i8'), n), 'kosher salt: 1 tsp for step 4, more to season');
-  assert.equal(gatherLine(byId('i5'), n), '⅓ cup packed fresh dill: most of it for step 4, 2 tbsp for step 17');
+  assert.equal(gatherLine(byId('i5'), n), '⅓ cup packed fresh dill: most of it for step 4, 2 tbsp for step 9c');
 });
 
 test('original sentence comes from the step text; prep actions fall back to the ingredient line', () => {
@@ -135,7 +148,7 @@ test('the sample result has the golden structure', () => {
 });
 
 test('Gather: a "most of / reserve" split reads by step; prep words only when the portions differ by prep', () => {
-  const n = { numbers: new Map([['a1', 2], ['a5', 9]]), windowOf: new Map(), total: 9 };
+  const n = { numbers: new Map([['a1', 2], ['a5', 9]]), labels: new Map([['a1', '2'], ['a5', '9']]), windowOf: new Map(), total: 9 };
   const herb = {
     name: 'fresh parsley', alternates: [], total: { qty: 0.5, unit: 'cup' },
     portions: [
@@ -152,7 +165,7 @@ test('Gather: a "most of / reserve" split reads by step; prep words only when th
 });
 
 test('Gather: an unmeasured use with a stated use names no step', () => {
-  const n = { numbers: new Map([['a1', 2], ['a5', 9]]), windowOf: new Map(), total: 9 };
+  const n = { numbers: new Map([['a1', 2], ['a5', 9]]), labels: new Map([['a1', '2'], ['a5', '9']]), windowOf: new Map(), total: 9 };
   const ing = {
     name: 'sea salt', alternates: [],
     portions: [{ qty: 1, unit: 'tsp', usedIn: 'a1' }, { note: 'more to season', usedIn: 'a5' }],

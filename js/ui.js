@@ -90,24 +90,58 @@ export function leadingAmount(raw) {
 }
 
 /**
- * Number the actions: Prep and Cook continue one sequence. Prep actions placed in a window
- * (result.deferred) get no number of their own; they map to the cook action that holds them.
- * @returns {{numbers: Map<string, number>, windowOf: Map<string, string>, total: number}}
+ * The Cook actions grouped by the recipe paragraph they came from: consecutive actions with the same
+ * original step. The engine never reorders cooking steps, so a paragraph's actions are always adjacent.
+ * @returns {{step: number, actions: object[]}[]}
  */
-export function numberSteps(result) {
-  const numbers = new Map();
-  let n = 0;
-  for (const a of [...(result.prep || []), ...(result.cook || [])]) numbers.set(a.id, ++n);
-  const windowOf = new Map();
-  for (const a of result.cook || []) for (const id of a.meanwhile || []) windowOf.set(id, a.id);
-  return { numbers, windowOf, total: n };
+export function cookGroups(result) {
+  const groups = [];
+  for (const a of result.cook || []) {
+    const step = a.original && a.original.step >= 1 ? a.original.step : 0;
+    const last = groups[groups.length - 1];
+    if (last && step && last.step === step) last.actions.push(a);
+    else groups.push({ step, actions: [a] });
+  }
+  return groups;
 }
 
-/** Step number for any action id, including a deferred one (it takes its window's number). */
+/** "a", "b", ... "z", then "27", "28" for a paragraph with more than 26 actions. */
+const childLetter = (i) => (i < 26 ? String.fromCharCode(97 + i) : String(i + 1));
+
+/**
+ * Number the actions. Prep lines are 1, 2, 3 ... and Cook continues the sequence by recipe paragraph: a
+ * paragraph that gave one action is "6", one that gave several is "6" with its actions "6a", "6b" ...
+ * Prep actions placed in a window (result.deferred) get no number of their own; they map to the cook
+ * action that holds them.
+ * @returns {{numbers: Map<string, number>, labels: Map<string, string>, groups: {number: number, actions: object[]}[], windowOf: Map<string, string>, total: number}}
+ */
+export function numberSteps(result) {
+  const numbers = new Map(); // one running count over every action, in order
+  const labels = new Map(); // what the person sees: "4", "6b"
+  let n = 0;
+  let top = 0;
+  for (const a of result.prep || []) {
+    numbers.set(a.id, ++n);
+    labels.set(a.id, String(++top));
+  }
+  const groups = cookGroups(result).map((g) => {
+    const number = ++top;
+    g.actions.forEach((a, i) => {
+      numbers.set(a.id, ++n);
+      labels.set(a.id, g.actions.length === 1 ? String(number) : `${number}${childLetter(i)}`);
+    });
+    return { number, actions: g.actions };
+  });
+  const windowOf = new Map();
+  for (const a of result.cook || []) for (const id of a.meanwhile || []) windowOf.set(id, a.id);
+  return { numbers, labels, groups, windowOf, total: n };
+}
+
+/** Step label ("6" or "6b") for any action id, including a deferred one (it takes its window's label). */
 export function stepNumberFor(id, numbering) {
-  if (numbering.numbers.has(id)) return numbering.numbers.get(id);
+  if (numbering.labels.has(id)) return numbering.labels.get(id);
   const w = numbering.windowOf.get(id);
-  return w ? numbering.numbers.get(w) : undefined;
+  return w ? numbering.labels.get(w) : undefined;
 }
 
 /** The prep actions an action's `meanwhile` ids point to, in order. Unknown ids are skipped. */
@@ -486,6 +520,14 @@ export function renderRecipe(root, ctx) {
         : null);
   }
 
+  /** One recipe paragraph: a single action is a plain line; several are a numbered group with its actions indented (a, b, c). */
+  function cookGroup(g) {
+    if (g.actions.length === 1) return actionLine(g.actions[0], numbering.labels.get(g.actions[0].id));
+    return h('li', { class: 'group' },
+      h('span', { class: 'gnum' }, `${g.number}.`),
+      h('ol', { class: 'lines sub' }, g.actions.map((a) => actionLine(a, numbering.labels.get(a.id).slice(String(g.number).length)))));
+  }
+
   function ingredientLine(ing) {
     const id = `g:${ing.id}`;
     return h('li', { class: `line gather${checked[id] ? ' done' : ''}` },
@@ -503,13 +545,14 @@ export function renderRecipe(root, ctx) {
     h('article', { class: 'recipe' },
       h('h1', null, result.title || recipe.title || 'Recipe'),
       source ? h('p', { class: 'source' }, 'Source: ', h('a', { href: source, rel: 'noopener noreferrer' }, host)) : null,
-      h('section', null, h('h2', null, 'Gather'), h('ul', { class: 'lines' }, (result.ingredients || []).map(ingredientLine))),
+      h('section', null, h('h2', null, 'Gather'), h('ul', { class: 'lines gather-list' }, (result.ingredients || []).map(ingredientLine))),
       h('section', null, h('h2', null, 'Prep'), h('ol', { class: 'lines' }, (result.prep || []).map((a) => actionLine(a, numbering.numbers.get(a.id))))),
-      h('section', null, h('h2', null, 'Cook'), h('ol', { class: 'lines' }, (result.cook || []).map((a) => actionLine(a, numbering.numbers.get(a.id))))),
+      h('section', null, h('h2', null, 'Cook'), h('ol', { class: 'lines cook' }, numbering.groups.map((g) => cookGroup(g)))),
       flags.other.length
         ? h('section', null, h('h2', null, 'Notes'), flags.other.map((f) => h('p', { class: 'note-block' }, f.message)))
         : null,
       h('p', { class: 'row' },
+        h('button', { type: 'button', onclick: () => window.print() }, 'Print'),
         h('button', { type: 'button', class: 'link', onclick: ctx.onReset }, 'Uncheck everything'))));
 }
 
