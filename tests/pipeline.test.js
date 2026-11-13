@@ -245,3 +245,20 @@ describe('no recipe text is lost', () => {
     }
   });
 });
+
+describe('pipeline: a count lands on the counted noun', () => {
+  it('"the chicken" gets no number, "the chicken thighs" does', () => {
+    const r = rewriteParts({
+      ingredients: ['4 chicken thighs', '2 tablespoons olive oil', '1 tablespoon paprika', '3 carrots, sliced'],
+      steps: ['Rub the oil and paprika all over the chicken. Roast the chicken thighs with the carrots for 35 minutes, until cooked through.'],
+    });
+    assert.deepEqual(texts(r.prep).filter((t) => /^Rub/.test(t)), ['Rub 2 tbsp oil and 1 tbsp paprika all over the chicken.']);
+    assert.deepEqual(texts(r.cook), ['Roast 4 chicken thighs with 3 carrots for 35 minutes, until cooked through.']);
+    assert.deepEqual(r.flags, []);
+  });
+  it('with no full mention no count is inserted and nothing is flagged', () => {
+    const r = rewriteParts({ ingredients: ['4 chicken thighs'], steps: ['Roast the chicken for 35 minutes.'] });
+    assert.deepEqual(texts(all(r)), ['Roast the chicken for 35 minutes.']);
+    assert.deepEqual(r.flags, []);
+  });
+});

@@ -208,3 +208,24 @@ describe('amount decisions', () => {
     assert.deepEqual(a.ingredients, b.ingredients);
   });
 });
+
+describe('a bare count lands only on a mention of the counted noun', () => {
+  it('an earlier word of the name links but gets no number', () => {
+    const r = resolved(['4 chicken thighs'], ['Rub the chicken with salt.']);
+    assert.equal(r.texts[0], 'Rub the chicken with salt.');
+    assert.deepEqual(r.actions[0].uses, [{ ingredientId: 'i1', portion: 0 }]);
+    assert.equal(r.flags.length, 0);
+  });
+  it('a partial mention does not use up the count; a later full mention gets it', () => {
+    const r = resolved(['4 chicken thighs'], ['Rub the chicken with salt.', 'Roast the chicken thighs.']);
+    assert.deepEqual(r.texts, ['Rub the chicken with salt.', 'Roast 4 chicken thighs.']);
+    assert.equal(r.flags.length, 0);
+  });
+  it('the singular or plural of the counted noun counts as full', () => {
+    assert.equal(resolved(['3 carrots'], ['Add the carrot.']).texts[0], 'Add 3 carrots.');
+    assert.equal(resolved(['2 large eggs'], ['Beat the egg.']).texts[0], 'Beat 2 eggs.');
+  });
+  it('a real unit is unaffected', () => {
+    assert.equal(resolved(['1 lb ground chicken'], ['Brown the chicken.']).texts[0], 'Brown 1 lb chicken.');
+  });
+});

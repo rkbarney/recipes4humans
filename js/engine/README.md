@@ -25,6 +25,8 @@ Stages 1 and 2 are independent and can be built in parallel; stages 3 to 6 consu
 ## Matching and amount decisions
 
 - Names match in three tiers: the full head, the last word of the head, then another word of the name exactly as written. Longest match wins. The third tier is off for names ending in broth, oil, powder, flakes and similar, for colour and size words, and for hyphenated parts, so "the beef" never means beef broth.
+- "corn meal", "corn-meal" and "cornmeal" are one name (two-word sequence, hyphenated or closed up).
+- A bare count ("4 chicken thighs") is inserted only at a mention that includes the counted noun (the last word of the head). A mention of an earlier word only ("the chicken") links to the ingredient, gets no number and does not use up the amount.
 - Two ingredients that fit one word with no distinguishing descriptor ("pepper" for black pepper and red-pepper flakes) give `ambiguous-ingredient`: no mention, no amount.
 - Product words (sauce, dough, batter, mixture, meatballs, marinade, dressing, filling) and ingredient-group names are never ingredients. A verb at the start of an action ("Oil the pan") is not a mention.
 - An ingredient used once gets its full amount. A stated amount is kept and nothing is inserted. "Remaining" and "the rest" are the total minus earlier uses; "half" and "a third" are scaled; "most of" with a reserve in the notes shows the reserve. With no amounts anywhere the total goes on the first use only, with `split-unresolved`.

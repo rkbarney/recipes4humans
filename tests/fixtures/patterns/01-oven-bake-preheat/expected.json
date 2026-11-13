@@ -27,14 +27,13 @@
         "pepper"
       ],
       "amounts": [
-        "6 chicken",
         "2 tbsp oil",
         "4 clove garlic",
         "2 tsp paprika",
         "1 tsp salt",
         "½ tsp pepper"
       ],
-      "notAmounts": [],
+      "notAmounts": ["6 chicken"],
       "meanwhile": []
     },
     {

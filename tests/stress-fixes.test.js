@@ -78,9 +78,9 @@ describe('stress-pass fixes: amounts', () => {
     const r = rewriteParts({ ingredients: ['2 tbsp butter'], steps: ['Grease the pan with butter.'] });
     assert.equal(r.cook[0].text, 'Grease the pan with 2 tbsp butter.');
   });
-  it('a word that is only part of the name takes a count without being pluralised', () => {
+  it('a word that is only part of the name gets no count (superseded: it used to give "4 chicken")', () => {
     const r = rewriteParts({ ingredients: ['4 boneless chicken breasts'], steps: ['Rub all over chicken.'] });
-    assert.equal(r.cook[0].text, 'Rub all over 4 chicken.');
+    assert.equal(r.cook[0].text, 'Rub all over chicken.');
   });
 });
 

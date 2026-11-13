@@ -86,7 +86,7 @@ function buildIndex(ingredients) {
       const words = toks.map((t) => singular(t.lower));
       if (!words.length) continue;
       toks.forEach((t, k) => { if (t.hy && words.length > 1) hyphenWords.add(words[k]); });
-      phrases.push({ idx, words, tier: 1 });
+      phrases.push({ idx, words, tier: 1, key: words.join('') });
       if (words.length > 1) {
         phrases.push({ idx, words: [words[words.length - 1]], tier: 2 });
         const seen = new Set([words[words.length - 1]]);
@@ -215,11 +215,20 @@ export function matchIngredients(ingredients, actions) {
     };
     const sameWords = (i, p) => (p.raw !== undefined ? toks[i].lower === p.raw : p.words.every((w, k) => singular(toks[i + k].lower) === w));
 
-    const maxN = Math.max(1, ...phrases.map((p) => p.words.length));
+    // Spacing variants: "corn meal", "corn-meal" and "cornmeal" are one name. A step span of n tokens can match a
+    // full-name phrase of 1 or 2 words that is spelled the other way (1 word vs 2 tokens, 2 words vs 1 token).
+    const joinable = (i, n) => n === 2 && toks[i + 1] && toks[i].type === 'w' && toks[i + 1].type === 'w'
+      && /^[ -]?$/.test(text.slice(toks[i].end, toks[i + 1].start));
+    const spanKey = (i, n) => toks.slice(i, i + n).map((t) => singular(t.lower)).join('');
+    const maxN = Math.max(2, ...phrases.map((p) => p.words.length));
     for (let n = maxN; n >= 1; n--) {
       for (let i = 0; i + n <= toks.length; i++) {
         if (!wordRun(i, n)) continue;
         const cands = phrases.filter((p) => p.words.length === n && sameWords(i, p));
+        if ((n === 1 || joinable(i, n)) && n <= 2) {
+          const key = spanKey(i, n);
+          for (const p of phrases) if (p.tier === 1 && p.words.length === 3 - n && p.key === key) cands.push(p);
+        }
         if (!cands.length) continue;
         const bestTier = Math.min(...cands.map((c) => c.tier));
         const word = n === 1 ? singular(toks[i].lower) : null;
@@ -354,7 +363,8 @@ function buildMention(action, toks, consumed, f, ingredientId, ing, inf, untilAt
     k = j - 2;
   }
   m.lead = lead;
-  // Only one word of a longer name ('chicken' for 'chicken breasts'): a count would name the wrong thing.
+  // Only an earlier word of a longer name ('chicken' for 'chicken thighs'): a bare count would name the wrong thing.
+  // The counted noun (the last word of the head) is always matched by tier 1 or 2, so tier 3 is exactly "partial".
   if (f.tier === 3 && f.n === 1) m.partial = true;
 
   // Derived prep noun right after the mention ("lemon juice", "lemon wedges").

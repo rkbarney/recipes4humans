@@ -160,6 +160,23 @@ describe('spec 1: alternatives', () => {
   it('several alternatives', () => {
     assert.deepEqual(one('1 cup milk or cream or water').ing.alternates, ['cream', 'water']);
   });
+  it('"yellow or white cornmeal" is one ingredient headed by the noun, with no alternates', () => {
+    const { ing, p } = one('1 cup yellow or white cornmeal');
+    assert.equal(ing.name, 'yellow or white cornmeal');
+    assert.equal(ing.head, 'cornmeal');
+    assert.deepEqual(ing.alternates, []);
+    assert.deepEqual(p, { qty: 1, unit: 'cup' });
+    assert.equal(parseIngredients(['1 cup yellow or white cornmeal']).flags.length, 0);
+  });
+  it('size descriptors joined by "or" are one ingredient too', () => {
+    const { ing } = one('2 large or medium onions');
+    assert.equal(ing.head, 'onions');
+    assert.deepEqual(ing.alternates, []);
+  });
+  it('two nouns still give alternates, even when descriptors come first', () => {
+    assert.deepEqual(one('1 cup white rice or quinoa').ing.alternates, ['quinoa']);
+    assert.deepEqual(one('1 cup yellow onion or white cabbage').ing.alternates, ['white cabbage']);
+  });
   it('a quantity inside an alternative is not kept in its name', () => {
     assert.deepEqual(one('2 tablespoons butter or 2 tablespoons oil').ing.alternates, ['oil']);
   });

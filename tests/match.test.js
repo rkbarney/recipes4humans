@@ -3,7 +3,7 @@
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { matched, flagCodes } from './helpers/engine.js';
+import { matched, resolved, flagCodes } from './helpers/engine.js';
 
 const names = (r) => r.mentions.map((m) => r.ingredients.find((i) => i.id === m.ingredientId).name);
 const on = (r, id) => r.mentions.filter((m) => m.actionId === id);
@@ -235,5 +235,36 @@ describe('flags from stage 3', () => {
     const again = matched(['1 cup rice', '2 tablespoons butter'], ['Add the rice and butter.']);
     assert.deepEqual(a.mentions, again.mentions);
     assert.equal(JSON.stringify([a.ingredients, a.actions]), before);
+  });
+});
+
+describe('spacing and hyphen variants of a name', () => {
+  const found = (lines, step) => {
+    const r = matched(lines, [step]);
+    return { r, text: (m) => r.actions[0].text.slice(m.start, m.end) };
+  };
+  for (const [ing, step, span] of [
+    ['cornmeal', 'Stir in the corn meal.', 'corn meal'],
+    ['cornmeal', 'Stir in the corn-meal.', 'corn-meal'],
+    ['corn meal', 'Stir in the cornmeal.', 'cornmeal'],
+    ['corn-meal', 'Stir in the cornmeal.', 'cornmeal'],
+    ['bread crumbs', 'Stir in the breadcrumbs.', 'breadcrumbs'],
+    ['breadcrumbs', 'Stir in the bread crumbs.', 'bread crumbs'],
+  ]) {
+    it(`"${ing}" matches "${span}" with the span of the original text`, () => {
+      const { r, text } = found([`1 cup ${ing}`], step);
+      assert.equal(r.mentions.length, 1);
+      assert.equal(text(r.mentions[0]), span);
+      assert.deepEqual(flagCodes(r.flags), []);
+    });
+  }
+  it('inserts the amount at the right place', () => {
+    const r = resolved(['1 cup cornmeal'], ['Stir in the corn meal.']);
+    assert.equal(r.texts[0], 'Stir in 1 cup corn meal.');
+  });
+  it('"baking soda" does not match "soda" any more than before, and "corn" alone is not "cornmeal"', () => {
+    const before = matched(['1 tsp baking soda'], ['Add the soda.']).mentions.length;
+    assert.equal(before, 1, 'unchanged: the last word of the name still stands for it');
+    assert.equal(matched(['1 cup cornmeal'], ['Add the corn.']).mentions.length, 0);
   });
 });

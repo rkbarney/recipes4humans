@@ -51,14 +51,24 @@ function fallbackName(text) {
   return text.replace(new RegExp(`^[\\d\\s.,/${FRACTION_CHARS}\\-–—]+`), '').trim() || text.trim();
 }
 
+const descriptorKey = (tok) => String(tok || '').toLowerCase().replace(/[,;.]+$/, '');
+
+/** "yellow or white cornmeal": an "or" with a descriptor on each side and a word after them joins descriptors, not ingredients. */
+const DESCRIPTOR_OR = /(?<![\w-])([\w-]+)\s+or\s+([\w-]+)(?=\s+\S)/gi;
+function maskDescriptorOr(name) {
+  return name.replace(DESCRIPTOR_OR, (m, a, b) => (DESCRIPTORS.has(a.toLowerCase()) && DESCRIPTORS.has(b.toLowerCase()) ? `${a} ${b}` : m));
+}
+
 function computeHead(name) {
   const descriptors = [];
   const kept = [];
-  for (const tok of name.split(/\s+/).filter(Boolean)) {
-    const key = tok.toLowerCase().replace(/[,;.]+$/, '');
+  const toks = name.split(/\s+/).filter(Boolean);
+  toks.forEach((tok, i) => {
+    const key = descriptorKey(tok);
+    if (key === 'or' && DESCRIPTORS.has(descriptorKey(toks[i - 1])) && DESCRIPTORS.has(descriptorKey(toks[i + 1])) && i + 2 < toks.length) return;
     if (DESCRIPTORS.has(key)) descriptors.push(tok);
     else kept.push(tok);
-  }
+  });
   if (kept.length === 0) return { head: name.toLowerCase().trim(), descriptors: [] };
   return { head: kept.join(' ').toLowerCase().replace(/[,;.]+$/, ''), descriptors };
 }
@@ -290,7 +300,7 @@ function parseLine(raw) {
     const parts = name.split(/\s+and\s+/i);
     if (parts.length === 2 && parts.every((p) => p.split(/\s+/).length <= 3) && !/^half and half$/i.test(name)) names = parts.map((p) => p.trim());
   }
-  if (names.length === 1 && /\s+or\s+/i.test(names[0])) {
+  if (names.length === 1 && /\s+or\s+/i.test(maskDescriptorOr(names[0]))) {
     const parts = names[0].split(/\s+or\s+/i).map((p) => p.trim()).filter(Boolean);
     names = [parts[0]];
     alternates = parts.slice(1).map((p) => {

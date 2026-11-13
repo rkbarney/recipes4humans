@@ -429,9 +429,18 @@ export function resolveAmounts(ingredients, actions, mentions) {
       ing.total = total;
     }
 
-    const res = resolveIngredient(ing, ms, actionById);
+    // A bare count ("4 chicken thighs") belongs to the counted noun: a mention of only an earlier word of the
+    // name ("the chicken") links to the ingredient but gets no number and does not use up the amount.
+    const bareCount = own.length > 0 && own.every((p) => !p.unit);
+    const partial = bareCount ? ms.filter((m) => m.partial) : [];
+    const res = resolveIngredient(ing, partial.length ? ms.filter((m) => !m.partial) : ms, actionById);
     ing.portions = res.portions;
     flags.push(...res.flags);
+    for (const m of partial) {
+      const idx = Math.max(0, ing.portions.findIndex((p) => !p.tag));
+      res.assign.set(m, { portion: idx });
+      if (ing.portions[idx] && ing.portions[idx].usedIn === undefined) ing.portions[idx].usedIn = m.actionId;
+    }
 
     for (const m of ms) {
       const a = res.assign.get(m);
