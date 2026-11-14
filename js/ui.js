@@ -357,7 +357,7 @@ const FIXES = [
   ['Simmer 20 minutes.', [['', 'Simmer 20 minutes.'], ['Meanwhile', 'Dice the parsley.']]],
   ['Where was I?', 'Tap a line to tick it off. It stays ticked.'],
   ['Life story, ads, pop-up video.', 'Just the recipe.'],
-  ['Create an account.', 'No sign-up. Saved on your phone.'],
+  ['Create an account.', 'No sign-up needed. Sign in with Google to sync, if you like.'],
 ];
 
 /** The saved-recipe list: starred first (storage sorts), each with a star toggle and Delete. */
@@ -823,10 +823,20 @@ function accountSection(ctx) {
 
 // --- iPhone hint ---
 
-export function renderIosHint(container, onDismiss) {
+/**
+ * The iPhone Safari hint. Signed out, recipes live only on the phone and Safari may clear them, so the
+ * hint offers both fixes; signed in, they are safe in the account and the home screen is just handier.
+ */
+export function iosHintText(signedIn) {
+  return signedIn
+    ? 'Tip: add recipes4humans to your home screen for one-tap cooking. Tap the Share button, then "Add to Home Screen".'
+    : 'Safari can clear recipes that are only saved on this phone. Sign in with Google (in Library) to keep them in your account, or add this app to your home screen: tap the Share button, then "Add to Home Screen".';
+}
+
+export function renderIosHint(container, onDismiss, { signedIn = false } = {}) {
   container.replaceChildren(
     h('div', { class: 'hint', role: 'note' },
-      h('p', null, 'To keep your saved recipes, add this app to your home screen: tap the Share button, then "Add to Home Screen". Safari can clear data from sites that are not added.'),
+      h('p', null, iosHintText(signedIn)),
       h('button', { type: 'button', class: 'mini', onclick: onDismiss }, 'Dismiss')));
 }
 
