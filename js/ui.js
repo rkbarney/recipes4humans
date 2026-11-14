@@ -323,7 +323,7 @@ export function renderMessage(root, { title, text, actions = [] }) {
 
 // --- Landing / paste ---
 
-// The homepage example. tests/ui-format.test.js runs EXAMPLE_BEFORE through the engine and checks that
+// A worked example (no longer shown on the homepage). tests/ui-format.test.js runs EXAMPLE_BEFORE through the engine and checks that
 // every line of EXAMPLE_AFTER is what it produces, so the example can be pasted and gives what it shows.
 export const EXAMPLE_BEFORE = [
   'Ingredients',
@@ -346,15 +346,18 @@ export const EXAMPLE_AFTER = [
   '5. Simmer 15 minutes.',
 ].join('\n');
 
+// [what the recipe says (shown struck through), what you get]. "what you get" is a string, or a list of
+// [marker, text] lines, shown indented, for one line that becomes several.
 const FIXES = [
-  ['"Add the salt." How much?', 'The amount is on every line that uses it.'],
-  ['One step, five jobs.', 'One action per line. Tick it off, move on.'],
-  ['The prep nobody mentioned.', '"1 onion, diced" becomes a step, before the pan is hot.'],
-  ['"Use the remaining cheese." What remaining cheese?', 'Every split is shown up front: 5 oz for the sauce, 1 oz for the top.'],
-  ['Standing around while it simmers.', 'It tells you what to prep while you wait.'],
-  ['Lost your place again.', "Tap a line when it's done. It's still ticked when you pick the phone back up."],
-  ['The life story, the ads, the pop-up video.', 'None of it. Plain text.'],
-  ['Another account to create.', 'No sign-up. Your recipes stay on your phone.'],
+  ['phone screen locks', 'phone screen stays ON'],
+  ['add the salt', 'add 1 tsp salt'],
+  ['melt the butter, add the rice, then simmer', [['a', 'Melt 1 tbsp butter.'], ['b', 'Add 2 cups rice.'], ['c', 'Simmer 15 minutes.']]],
+  ['1 onion, diced', [['step 1', 'Dice 1 onion, in Prep, before the pan is hot.']]],
+  ['use the remaining cheese', 'Cheese: 5 oz for the sauce, 1 oz for the top'],
+  ['simmer 20 minutes', [['', 'Simmer 20 minutes.'], ['', 'Meanwhile: dice the parsley.']]],
+  ['where was I?', 'Tap a line to tick it off. It stays ticked'],
+  ['life story, ads, pop-up video', 'just the recipe'],
+  ['create an account', 'no sign-up, saved on your phone'],
 ];
 
 /**
@@ -402,17 +405,17 @@ export function renderHome(root, { onSubmit, onParts, onLink, message }) {
     textForm);
 
   mount(root,
-    h('h1', null, 'Recipes that read the way your mind works.'),
-    h('p', { class: 'lede' }, 'Paste a recipe link and get started.'),
+    h('h1', null, 'Recipes reformatted for your phone.'),
+    h('p', { class: 'lede' }, 'Paste a recipe link and start cooking.'),
     linkForm,
     details,
-    h('h2', null, 'Before and after'),
-    h('div', { class: 'example' },
-      h('div', null, h('h3', null, 'The recipe says'), h('pre', null, EXAMPLE_BEFORE)),
-      h('div', null, h('h3', null, 'You cook from'), h('pre', null, EXAMPLE_AFTER))),
-    h('h2', null, 'What it fixes'),
-    h('ul', { class: 'fixes' }, FIXES.map(([complaint, line]) =>
-      h('li', null, h('strong', null, complaint), ' ', line))));
+    h('h2', null, 'Recipes4humans fixes all of the recipe gotchas that trip you up in the kitchen:'),
+    h('ul', { class: 'fixes' }, FIXES.map(([before, after]) =>
+      h('li', null, h('s', null, before),
+        typeof after === 'string'
+          ? h('span', { class: 'after' }, after)
+          : h('ol', { class: 'after-lines' }, after.map(([mark, text]) =>
+              h('li', null, mark ? h('span', { class: 'mark' }, /^[a-z]$/.test(mark) ? `${mark}.` : mark) : null, text)))))));
 
   return {
     setLinkStatus: (t) => { linkStatus.textContent = t; },
@@ -464,6 +467,47 @@ export function renderRecipe(root, ctx) {
   const numbering = numberSteps(result);
   const flags = groupFlags(result.flags);
   const checked = recipe.checked || (recipe.checked = {});
+  const collapsed = recipe.collapsed || (recipe.collapsed = {});
+  const watchers = []; // run after every tick, so progress counts and auto-collapse stay current
+
+  const chev = () => h('span', { class: 'chev', 'aria-hidden': 'true' });
+  function remember(key, on) {
+    if (on) collapsed[key] = true;
+    else delete collapsed[key];
+    if (ctx.onCollapse) ctx.onCollapse(key, on);
+  }
+  const allDone = (ids) => ids.length > 0 && ids.every((id) => checked[id]);
+
+  /** A section whose heading folds it away. Collapses itself once everything in it is ticked. */
+  function section(key, title, ids, list) {
+    const count = h('span', { class: 'count' });
+    const btn = h('button', { type: 'button', class: 'chead' }, chev(), h('span', { class: 'title' }, title), count);
+    const wrap = h('section', { class: 'sec' }, h('h2', { class: 'sechead' }, btn), h('div', { class: 'cbody' }, list));
+    const set = (on) => {
+      wrap.classList.toggle('collapsed', on);
+      btn.setAttribute('aria-expanded', on ? 'false' : 'true');
+    };
+    let complete = allDone(ids);
+    const refresh = () => {
+      const done = ids.filter((id) => checked[id]).length;
+      count.textContent = ids.length ? `${done}/${ids.length}` : '';
+      wrap.classList.toggle('alldone', ids.length > 0 && done === ids.length);
+    };
+    set(!!collapsed[key]);
+    refresh();
+    btn.addEventListener('click', () => {
+      const on = !wrap.classList.contains('collapsed');
+      set(on);
+      remember(key, on);
+    });
+    watchers.push(() => {
+      refresh();
+      const now = allDone(ids);
+      if (now && !complete) { set(true); remember(key, true); }
+      complete = now;
+    });
+    return wrap;
+  }
 
   function checkRow(id, content) {
     const btn = h('button', { type: 'button', class: 'check', 'aria-pressed': checked[id] ? 'true' : 'false' }, content);
@@ -472,6 +516,7 @@ export function renderRecipe(root, ctx) {
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
       btn.closest('.line').classList.toggle('done', on);
       ctx.onToggle(id, on);
+      watchers.forEach((w) => w());
     });
     return btn;
   }
@@ -523,9 +568,39 @@ export function renderRecipe(root, ctx) {
   /** One recipe paragraph: a single action is a plain line; several are a numbered group with its actions indented (a, b, c). */
   function cookGroup(g) {
     if (g.actions.length === 1) return actionLine(g.actions[0], numbering.labels.get(g.actions[0].id));
-    return h('li', { class: 'group' },
-      h('span', { class: 'gnum' }, `${g.number}.`),
+    const key = `step:${g.number}`;
+    const ids = g.actions.map((a) => a.id);
+    const toggle = h('button', { type: 'button', class: 'gtoggle', 'aria-expanded': 'true' }, chev(), h('span', { class: 'gnum' }, `${g.number}.`));
+    const summary = h('button', { type: 'button', class: 'gsummary' },
+      h('span', { class: 'gfirst' }, g.actions[0].text),
+      h('span', { class: 'gmore' }, ` + ${g.actions.length - 1} more`));
+    const li = h('li', { class: 'group' }, toggle, summary,
       h('ol', { class: 'lines sub' }, g.actions.map((a) => actionLine(a, numbering.labels.get(a.id).slice(String(g.number).length)))));
+    const set = (on) => {
+      li.classList.toggle('collapsed', on);
+      toggle.setAttribute('aria-expanded', on ? 'false' : 'true');
+    };
+    const flip = () => {
+      const on = !li.classList.contains('collapsed');
+      set(on);
+      remember(key, on);
+    };
+    toggle.addEventListener('click', flip);
+    summary.addEventListener('click', flip);
+    let complete = allDone(ids);
+    set(!!collapsed[key]);
+    li.classList.toggle('alldone', complete);
+    // Ticking the last action folds the step away; unticking one opens it again.
+    watchers.push(() => {
+      const now = allDone(ids);
+      li.classList.toggle('alldone', now);
+      if (now !== complete) {
+        set(now);
+        remember(key, now);
+      }
+      complete = now;
+    });
+    return li;
   }
 
   function ingredientLine(ing) {
@@ -547,9 +622,14 @@ export function renderRecipe(root, ctx) {
       source ? h('p', { class: 'source' }, 'Source: ', h('a', { href: source, rel: 'noopener noreferrer' }, host)) : null,
       h('p', { class: 'row recipe-actions' },
         h('button', { type: 'button', onclick: () => (ctx.onPrint ? ctx.onPrint() : window.print()) }, 'Print')),
-      h('section', null, h('h2', null, 'Gather'), h('ul', { class: 'lines gather-list' }, (result.ingredients || []).map(ingredientLine))),
-      h('section', null, h('h2', null, 'Prep'), h('ol', { class: 'lines' }, (result.prep || []).map((a) => actionLine(a, numbering.numbers.get(a.id))))),
-      h('section', null, h('h2', null, 'Cook'), h('ol', { class: 'lines cook' }, numbering.groups.map((g) => cookGroup(g)))),
+      section('sec:ingredients', 'Ingredients', (result.ingredients || []).map((i) => `g:${i.id}`),
+        h('ul', { class: 'lines gather-list' }, (result.ingredients || []).map(ingredientLine))),
+      (result.prep || []).length
+        ? section('sec:prep', 'Prep', result.prep.map((a) => a.id),
+            h('ol', { class: 'lines' }, result.prep.map((a) => actionLine(a, numbering.numbers.get(a.id)))))
+        : null,
+      section('sec:cook', 'Cook', numbering.groups.flatMap((g) => g.actions.map((a) => a.id)),
+        h('ol', { class: 'lines cook' }, numbering.groups.map((g) => cookGroup(g)))),
       flags.other.length
         ? h('section', null, h('h2', null, 'Notes'), flags.other.map((f) => h('p', { class: 'note-block' }, f.message)))
         : null,
@@ -575,7 +655,7 @@ export function printDoc(recipe, result) {
       for (const p of placed) step(p, null, indent + 1);
     }
   };
-  blocks.push({ type: 'h', text: 'Gather' });
+  blocks.push({ type: 'h', text: 'Ingredients' });
   for (const ing of result.ingredients || []) blocks.push({ type: 'p', text: gatherLine(ing, numbering) });
   if ((result.prep || []).length) {
     blocks.push({ type: 'h', text: 'Prep' });

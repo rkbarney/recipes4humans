@@ -222,8 +222,15 @@ async function showRecipe(id) {
       else delete rec.checked[lineId];
       scheduleSave(rec);
     },
+    onCollapse: (key, on) => {
+      if (!rec.collapsed) rec.collapsed = {};
+      if (on) rec.collapsed[key] = true;
+      else delete rec.collapsed[key];
+      scheduleSave(rec);
+    },
     onReset: () => {
       rec.checked = {};
+      rec.collapsed = {};
       scheduleSave(rec);
       showRecipe(id);
     },
@@ -233,11 +240,12 @@ async function showRecipe(id) {
 }
 
 /**
- * Print. An iPhone home-screen app ignores window.print(), so there we share a PDF of the recipe
- * instead: the share sheet offers Print (and Save to Files, Mail, AirDrop).
+ * Print. iPhone Safari blocks window.print() ("blocked from automatically printing") and a home-screen
+ * app ignores it, so on iOS we share a PDF of the recipe instead: the share sheet offers Print (and Save to Files, Mail, AirDrop).
  */
 function printRecipe(rec, result) {
-  if (navigator.standalone !== true || !navigator.canShare) {
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (!ios || !navigator.canShare) {
     window.print();
     return;
   }

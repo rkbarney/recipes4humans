@@ -4,7 +4,7 @@
 // improvements apply to old recipes when they are opened. Every storage call is wrapped: when
 // IndexedDB or localStorage is unavailable the app falls back to memory for this page load.
 //
-// Record: { id, title, text?, parts?: {ingredients, steps}, sourceUrl?, created, checked: {lineId: true} }
+// Record: { id, title, text?, parts?: {ingredients, steps}, sourceUrl?, created, checked: {lineId: true}, collapsed: {sectionOrStepKey: true} }
 
 import { CONFIG } from './config.js';
 
@@ -34,12 +34,17 @@ export function normalizeRecipe(raw, now = Date.now()) {
   if (raw.checked && typeof raw.checked === 'object') {
     for (const [k, v] of Object.entries(raw.checked)) if (v === true) checked[k] = true;
   }
+  const collapsed = {};
+  if (raw.collapsed && typeof raw.collapsed === 'object') {
+    for (const [k, v] of Object.entries(raw.collapsed)) if (v === true) collapsed[k] = true;
+  }
   const rec = {
     id: raw.id,
     title: typeof raw.title === 'string' && raw.title.trim() ? raw.title.trim() : 'Untitled recipe',
     created: Number.isFinite(raw.created) ? raw.created : now,
     checked,
   };
+  if (Object.keys(collapsed).length) rec.collapsed = collapsed;
   if (hasText) rec.text = raw.text;
   else rec.parts = { ingredients: p.ingredients, steps: p.steps };
   if (typeof raw.sourceUrl === 'string' && raw.sourceUrl) rec.sourceUrl = raw.sourceUrl;

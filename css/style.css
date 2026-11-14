@@ -148,7 +148,10 @@ details.text-option[open] summary { margin-bottom: .25rem; }
 ul.fixes { list-style: none; margin: .5rem 0 0; padding: 0; }
 .fixes li { padding: .6rem 0; border-bottom: 1px solid var(--border); }
 .fixes li:last-child { border-bottom: 0; }
-.fixes strong { display: block; }
+.fixes s { display: block; color: var(--muted); }
+.fixes .after { display: block; font-weight: 600; }
+ol.after-lines { list-style: none; margin: .1rem 0 0 1.1rem; padding: 0 0 0 .75rem; border-left: 3px solid var(--border); font-weight: 600; }
+.after-lines .mark { display: inline-block; min-width: 2.6ch; margin-right: .4rem; color: var(--muted); font-weight: 400; }
 
 /* Before and after */
 .example { display: grid; grid-template-columns: 1fr; gap: 12px; }
@@ -238,6 +241,28 @@ ul.library { list-style: none; margin: 0; padding: 0; }
   .example { grid-template-columns: 1fr 1fr; }
 }
 
+/* Collapsible sections and steps. Big tap targets: you're cooking, with one hand. */
+.sechead { margin: 1.25rem 0 .25rem; padding: 0; border-bottom: 1px solid var(--border); }
+.chead { display: flex; align-items: center; gap: .6rem; width: 100%; min-height: 52px; border: 0; background: transparent; text-align: left; font: inherit; font-weight: 700; padding: 0; }
+.chead .title { flex: 1; }
+.count { font-size: .9rem; font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sec.alldone .count::after { content: ' \2713'; }
+.chev { flex: none; width: 0; height: 0; margin: 0 .2rem; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid var(--muted); transition: transform .12s; }
+.collapsed > .sechead .chev, .group.collapsed .chev { transform: rotate(-90deg); }
+.sec.collapsed > .cbody { display: none; }
+
+.group { grid-template-areas: "toggle summary" "toggle list"; }
+.gtoggle { grid-area: toggle; display: flex; align-items: flex-start; justify-content: flex-end; gap: .35rem; border: 0; background: transparent; padding: 0; min-height: var(--touch); font: inherit; }
+.gtoggle .chev { margin-top: .85rem; }
+.gtoggle .gnum { padding-top: .55rem; }
+.gsummary { grid-area: summary; display: none; text-align: left; border: 0; background: transparent; padding: .55rem 0; min-height: var(--touch); font: inherit; min-width: 0; }
+.gsummary .gmore { color: var(--muted); font-size: .85rem; }
+.group > ol.lines.sub { grid-area: list; }
+.group.collapsed > .gsummary { display: block; }
+.group.collapsed > ol.lines.sub { display: none; }
+.group.alldone > .gsummary .gfirst { text-decoration: line-through; }
+.group.alldone > .gsummary { opacity: .5; }
+
 /* A recipe paragraph that gave several actions: its number on the left, the actions indented (a, b, c) */
 .group { display: grid; grid-template-columns: var(--numw) 1fr; column-gap: .6rem; border-bottom: 1px solid var(--border); padding-top: 2px; }
 .group:last-child { border-bottom: 0; }
@@ -252,7 +277,12 @@ ol.lines.sub { border-left: 3px solid var(--border); padding-left: 10px; min-wid
   :root, :root[data-theme="dark"] { --bg: #fff; --text: #000; --muted: #333; --border: #999; --link: #000; color-scheme: light; }
   html, body { background: #fff; color: #000; }
   body { font-size: 10pt; line-height: 1.25; }
-  .bar, #hint, .row, .tools, .panel, .note-block { display: none !important; }
+  .bar, #hint, .row, .tools, .panel, .note-block, .chev, .count, .gsummary { display: none !important; }
+  .sec.collapsed > .cbody, .group.collapsed > ol.lines.sub { display: block !important; }
+  .sechead { margin: 0; border: 0; }
+  .chead { min-height: 0; font: inherit; }
+  .gtoggle { min-height: 0; }
+  .gtoggle .gnum { padding-top: 1pt; }
   #app { max-width: none; padding: 0; }
   h1 { font-size: 15pt; line-height: 1.15; margin: 0 0 2pt; }
   h2 { font-size: 8.5pt; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid #000; margin: 7pt 0 2pt; padding-bottom: 1pt; }
