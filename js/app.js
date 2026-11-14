@@ -3,6 +3,7 @@
 
 import { rewrite, rewriteParts } from './engine/index.js';
 import * as storage from './storage.js';
+import * as sync from './sync.js';
 import * as ui from './ui.js';
 import { CONFIG } from './config.js';
 import { extractRecipe } from './extract.js';
@@ -42,15 +43,35 @@ async function loadAccount() {
   }
 }
 
+/** Signing out sends any last edits, then removes this device's recipes (they stay in the account). */
 async function signOut() {
+  if (!window.confirm('Sign out? Your recipes will be removed from this device. They stay in your account and come back when you sign in again.')) return;
+  await sync.syncNow();
+  if ((await sync.hasUnsynced())
+    && !window.confirm('Some changes on this device have not reached your account yet (are you offline?). Sign out anyway and lose them?')) return;
   try {
-    await fetch(`${CONFIG.authBase}/logout`, { method: 'POST', signal: AbortSignal.timeout(8000) });
-    libraryMessage = 'Signed out.';
+    const res = await fetch(`${CONFIG.authBase}/logout`, { method: 'POST', signal: AbortSignal.timeout(8000) });
+    if (!res.ok) throw new Error(String(res.status));
   } catch {
     libraryMessage = 'Could not sign out. Check the connection and try again.';
+    showLibrary();
+    return;
   }
+  sync.stop();
+  try { await storage.clearRecipes(); } catch { /* ignore */ }
+  libraryMessage = 'Signed out. Your recipes were removed from this device.';
   showLibrary();
 }
+
+/** Start syncing if signed in. Called at startup and whenever the library learns the account state. */
+function startSyncFor(user) {
+  if (user && !sync.status().enabled) sync.start(user).catch(() => {});
+}
+
+// When a sync brings in changes, refresh the library if it is on screen.
+sync.onSynced(({ changed }) => {
+  if (changed && location.hash === '#/library') showLibrary();
+});
 
 // ---------- Engine ----------
 
@@ -308,6 +329,7 @@ async function showLibrary() {
   try { recipes = await storage.listRecipes(); } catch { recipes = []; }
   const user = await loadAccount();
   if (token !== navToken) return; // the person went to another screen while we waited
+  startSyncFor(user);
   if (pendingSigninMessage !== undefined) {
     libraryMessage = libraryMessage || pendingSigninMessage;
     pendingSigninMessage = undefined;
@@ -318,6 +340,7 @@ async function showLibrary() {
     recipes,
     message,
     user,
+    sync: sync.status(),
     signInUrl: `${CONFIG.authBase}/login`,
     onSignOut: signOut,
     theme: storage.getSetting('theme', 'system'),
@@ -392,6 +415,7 @@ ui.setTheme(storage.getSetting('theme', 'system'));
 window.addEventListener('hashchange', route);
 route();
 maybeShowIosHint();
+loadAccount().then(startSyncFor);
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   const local = ['localhost', '127.0.0.1'].includes(location.hostname);

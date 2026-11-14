@@ -706,7 +706,7 @@ export function renderLibrary(root, ctx) {
     list,
     accountSection(ctx),
     h('h2', null, 'Backup'),
-    h('p', { class: 'note' }, 'Recipes live only in this browser. Export them to a file to keep a copy or move them to another device.'),
+    h('p', { class: 'note' }, ctx.user ? 'Export saves a copy of your recipes to a file.' : 'Recipes live only in this browser. Export them to a file to keep a copy or move them to another device.'),
     h('p', { class: 'row' },
       h('button', { type: 'button', onclick: ctx.onExport, disabled: ctx.recipes.length ? null : true }, 'Export all'),
       h('label', { class: 'button', for: 'import-file' }, 'Import'),
@@ -715,18 +715,27 @@ export function renderLibrary(root, ctx) {
     h('div', { class: 'choices' }, themeRadio('system', 'System'), themeRadio('light', 'Light'), themeRadio('dark', 'Dark')));
 }
 
+function syncNote(st = {}) {
+  if (st.error) return `Recipes sync across your devices. Last try failed: ${st.error} It will try again.`;
+  if (st.lastSynced) {
+    const t = new Date(st.lastSynced).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    return `Recipes sync across your devices. Last synced at ${t}.`;
+  }
+  return 'Recipes sync across your devices.';
+}
+
 /** Account block in the library. `ctx.user`: object when signed in, null when signed out, undefined when unknown. */
 function accountSection(ctx) {
   let body;
   if (ctx.user) {
     body = [
       h('p', null, `Signed in as ${ctx.user.name || ctx.user.email}.`),
-      h('p', { class: 'note' }, 'Sync across devices is coming next. Until then, recipes are still kept only in this browser.'),
+      h('p', { class: 'note' }, syncNote(ctx.sync)),
       h('p', { class: 'row' }, h('button', { type: 'button', onclick: ctx.onSignOut }, 'Sign out')),
     ];
   } else if (ctx.user === null) {
     body = [
-      h('p', { class: 'note' }, 'Sign in to keep your recipes on all your devices. Sync is coming next; signing in does not change your recipes yet.'),
+      h('p', { class: 'note' }, 'Sign in to keep your recipes on all your devices. Recipes already on this device join your account.'),
       h('p', { class: 'row' }, h('a', { class: 'button', href: ctx.signInUrl }, 'Sign in with Google')),
     ];
   } else {

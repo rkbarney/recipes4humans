@@ -4,7 +4,12 @@
 // improvements apply to old recipes when they are opened. Every storage call is wrapped: when
 // IndexedDB or localStorage is unavailable the app falls back to memory for this page load.
 //
-// Record: { id, title, text?, parts?: {ingredients, steps}, sourceUrl?, created, checked: {lineId: true}, collapsed: {sectionOrStepKey: true} }
+// Record: { id, title, text?, parts?: {ingredients, steps}, sourceUrl?, created, checked: {lineId: true}, collapsed: {sectionOrStepKey: true},
+//          updated?, dirty?, deleted? }
+//
+// Sync fields (Version 2): `updated` is the time of the last edit on any device (ms); `dirty` marks an edit
+// made here that the server has not taken yet; a delete keeps a tombstone { id, deleted: true, updated, dirty }
+// so it reaches other devices. listRecipes and getRecipe hide tombstones.
 
 import { CONFIG } from './config.js';
 
@@ -48,6 +53,7 @@ export function normalizeRecipe(raw, now = Date.now()) {
   if (hasText) rec.text = raw.text;
   else rec.parts = { ingredients: p.ingredients, steps: p.steps };
   if (typeof raw.sourceUrl === 'string' && raw.sourceUrl) rec.sourceUrl = raw.sourceUrl;
+  if (Number.isFinite(raw.updated)) rec.updated = raw.updated;
   return rec;
 }
 
@@ -57,7 +63,7 @@ export function buildExport(recipes, now = Date.now()) {
     app: CONFIG.exportApp,
     version: CONFIG.exportVersion,
     exported: new Date(now).toISOString(),
-    recipes: recipes.map((r) => ({ ...r })),
+    recipes: recipes.map(({ dirty, deleted, ...r }) => ({ ...r })),
   };
 }
 
@@ -155,6 +161,20 @@ export function setFlag(key) {
 
 // ---------- Recipes (IndexedDB, memory fallback) ----------
 
+const changeListeners = new Set();
+
+/** Call `cb` after any edit made on this device (not after records written by sync). */
+export function onLocalChange(cb) {
+  changeListeners.add(cb);
+  return () => changeListeners.delete(cb);
+}
+
+function localChanged() {
+  for (const cb of changeListeners) {
+    try { cb(); } catch { /* ignore */ }
+  }
+}
+
 const memoryRecipes = new Map();
 let db = null;
 let idbBroken = false;
@@ -219,22 +239,43 @@ export function isPersistent() {
   return !idbBroken;
 }
 
-export async function listRecipes() {
+/** Every record, tombstones included (for sync). */
+export async function allRecords() {
   const list = await run(
     (d) => request(d.transaction(CONFIG.storeRecipes, 'readonly').objectStore(CONFIG.storeRecipes).getAll()),
     () => [...memoryRecipes.values()]
   );
-  return (list || []).sort((a, b) => (b.created || 0) - (a.created || 0));
+  return list || [];
 }
 
-export async function getRecipe(id) {
+export async function listRecipes() {
+  return (await allRecords()).filter((r) => !r.deleted).sort((a, b) => (b.created || 0) - (a.created || 0));
+}
+
+/** One record, tombstones included (for sync). */
+export async function getRecord(id) {
   return run(
     (d) => request(d.transaction(CONFIG.storeRecipes, 'readonly').objectStore(CONFIG.storeRecipes).get(id)),
     () => memoryRecipes.get(id)
   );
 }
 
+export async function getRecipe(id) {
+  const rec = await getRecord(id);
+  return rec && !rec.deleted ? rec : undefined;
+}
+
+/** Save an edit made on this device: stamps the edit time and marks it for sync. */
 export async function saveRecipe(rec) {
+  rec.updated = Date.now();
+  rec.dirty = true;
+  const saved = await putRecord(rec);
+  localChanged();
+  return saved;
+}
+
+/** Write a record exactly as given (used by sync; does not mark it for sync). */
+export async function putRecord(rec) {
   return run(
     async (d) => {
       const tx = d.transaction(CONFIG.storeRecipes, 'readwrite');
@@ -258,7 +299,14 @@ export async function saveMany(recs) {
   );
 }
 
+/** Delete on this device: leaves a tombstone so the delete reaches other devices. */
 export async function deleteRecipe(id) {
+  await putRecord({ id, deleted: true, updated: Date.now(), dirty: true });
+  localChanged();
+}
+
+/** Remove a record completely (used by sync once a tombstone is no longer needed). */
+export async function removeRecord(id) {
   return run(
     async (d) => {
       const tx = d.transaction(CONFIG.storeRecipes, 'readwrite');
@@ -266,6 +314,18 @@ export async function deleteRecipe(id) {
       await txDone(tx);
     },
     () => { memoryRecipes.delete(id); }
+  );
+}
+
+/** Remove every recipe from this device (signing out). */
+export async function clearRecipes() {
+  return run(
+    async (d) => {
+      const tx = d.transaction(CONFIG.storeRecipes, 'readwrite');
+      tx.objectStore(CONFIG.storeRecipes).clear();
+      await txDone(tx);
+    },
+    () => { memoryRecipes.clear(); }
   );
 }
 
@@ -281,6 +341,10 @@ export async function importFromText(jsonText) {
   if (parsed.error) return { added: 0, skipped: 0, invalid: 0, error: parsed.error };
   const existing = await listRecipes();
   const { toAdd, skipped } = mergeRecipes(existing, parsed.recipes);
-  if (toAdd.length) await saveMany(toAdd);
+  if (toAdd.length) {
+    const now = Date.now();
+    await saveMany(toAdd.map((r) => ({ ...r, updated: now, dirty: true })));
+    localChanged();
+  }
   return { added: toAdd.length, skipped, invalid: parsed.invalid };
 }
