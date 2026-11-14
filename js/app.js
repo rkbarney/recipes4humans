@@ -63,6 +63,22 @@ async function signOut() {
   showLibrary();
 }
 
+/** Delete the account on the server. Recipes on this device stay here. */
+async function deleteAccount() {
+  if (!window.confirm('Delete your account? Your recipes are removed from the server and stop syncing. Recipes on this device stay here.')) return;
+  try {
+    const res = await fetch(CONFIG.deleteAccountUrl, { method: 'POST', signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error(String(res.status));
+  } catch {
+    libraryMessage = 'Could not delete the account. Check the connection and try again.';
+    showLibrary();
+    return;
+  }
+  sync.stop();
+  libraryMessage = 'Your account was deleted. Recipes on this device are still here.';
+  showLibrary();
+}
+
 /** Start syncing if signed in. Called at startup and whenever the library learns the account state. */
 function startSyncFor(user) {
   if (user && !sync.status().enabled) sync.start(user).catch(() => {});
@@ -74,6 +90,10 @@ sync.onSynced(({ changed, ids }) => {
   if (!changed) return;
   if (location.hash === '#/library') {
     showLibrary();
+    return;
+  }
+  if (!location.hash || location.hash === '#/') {
+    if (!document.activeElement || !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) showHome();
     return;
   }
   const m = location.hash.match(/^#\/recipe\/(.+)$/);
@@ -158,9 +178,80 @@ let navToken = 0;
 const MSG_NOT_ON = 'Link import is not switched on yet. Paste the recipe text instead.';
 const MSG_BAD_LINK = 'That does not look like a web link. It should start with http:// or https://.';
 
-function showHome(message) {
+async function showHome(message) {
   releaseWakeLock();
-  home = ui.renderHome(root, { onSubmit: (text) => submit({ text }), onParts: showParts, onLink: importLink, message });
+  const token = navToken;
+  let recipes = [];
+  try { recipes = await storage.listRecipes(); } catch { recipes = []; }
+  if (token !== navToken) return;
+  home = ui.renderHome(root, {
+    onSubmit: (text) => submit({ text }),
+    onParts: showParts,
+    onLink: importLink,
+    message,
+    recipes,
+    onStar: (rec) => toggleStar(rec).then(() => { if (token === navToken) showHome(); }),
+    onDelete: (rec) => removeRecipe(rec).then((gone) => { if (gone && token === navToken) showHome(); }),
+    signInUrl: `${CONFIG.authBase}/login`,
+  });
+  const screen = home;
+  loadAccount().then((user) => {
+    if (home === screen && token === navToken) screen.setAccount(user);
+    startSyncFor(user);
+  });
+}
+
+// ---------- Stars, deleting, sharing ----------
+
+async function toggleStar(rec) {
+  if (rec.starred) delete rec.starred;
+  else rec.starred = true;
+  try { await storage.saveRecipe(rec); } catch { /* ignore */ }
+}
+
+async function removeRecipe(rec) {
+  if (!window.confirm(`Delete "${rec.title}"? This cannot be undone.`)) return false;
+  try { await storage.deleteRecipe(rec.id); } catch { /* ignore */ }
+  return true;
+}
+
+const SITE_URL = 'https://recipes4humans.com/';
+
+/** Open the system share sheet; where there is none, copy to the clipboard instead. */
+async function share({ title, text, url }) {
+  if (navigator.share) {
+    try {
+      await navigator.share(url ? { title, text, url } : { title, text });
+      return;
+    } catch (err) {
+      if (err && err.name === 'AbortError') return; // the person closed the share sheet
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url ? `${text} ${url}` : text);
+    ui.toast(url ? 'Link copied.' : 'Copied.');
+  } catch {
+    ui.toast('Sharing is not available in this browser.');
+  }
+}
+
+function shareSite() {
+  return share({ title: 'recipes4humans', text: 'Recipes reformatted for your phone: one step per line, amounts where you need them.', url: SITE_URL });
+}
+
+/**
+ * A recipe from a link is shared as a recipes4humans link that opens it ready to cook; the recipe
+ * text itself is not uploaded anywhere. A pasted recipe is shared as its text.
+ */
+function shareRecipe(rec) {
+  const title = rec.title || 'Recipe';
+  if (rec.sourceUrl) {
+    return share({ title, text: `${title}, ready to cook on recipes4humans:`, url: `${SITE_URL}?import=${encodeURIComponent(rec.sourceUrl)}` });
+  }
+  const body = rec.text !== undefined
+    ? rec.text
+    : [].concat(rec.parts.ingredients).join('\n') + '\n\n' + [].concat(rec.parts.steps).join('\n');
+  return share({ title, text: `${title}\n\n${body.trim()}\n\nReformat recipes for your phone: ${SITE_URL}` });
 }
 
 /** The link as a URL object when it is an http or https address, else null. */
@@ -321,6 +412,13 @@ async function showRecipe(id) {
       scheduleSave(rec);
       showRecipe(id);
     },
+    onShare: () => shareRecipe(rec),
+    onStar: async () => {
+      await flushSave();
+      await toggleStar(rec);
+      const y = window.scrollY;
+      showRecipe(id).then(() => window.scrollTo(0, y));
+    },
     onPrint: () => printRecipe(rec, result),
   });
   keepAwake();
@@ -373,10 +471,13 @@ async function showLibrary() {
     persistent: storage.isPersistent(),
     onTheme: (t) => { storage.setSetting('theme', t); ui.setTheme(t); },
     onDelete: async (rec) => {
-      if (!window.confirm(`Delete "${rec.title}"? This cannot be undone.`)) return;
-      try { await storage.deleteRecipe(rec.id); } catch { /* ignore */ }
+      if (await removeRecipe(rec)) showLibrary();
+    },
+    onStar: async (rec) => {
+      await toggleStar(rec);
       showLibrary();
     },
+    onDeleteAccount: deleteAccount,
     onExport: async () => {
       try {
         const data = await storage.exportAll();
@@ -410,9 +511,9 @@ function route() {
   navToken++;
   const hash = location.hash || '#/';
   let m;
-  if ((m = hash.match(/^#\/recipe\/(.+)$/))) showRecipe(decodeURIComponent(m[1]));
-  else if (hash === '#/library') showLibrary();
-  else showHome();
+  if ((m = hash.match(/^#\/recipe\/(.+)$/))) return showRecipe(decodeURIComponent(m[1]));
+  if (hash === '#/library') return showLibrary();
+  return showHome();
 }
 
 // ---------- iPhone hint ----------
@@ -439,9 +540,20 @@ function maybeShowIosHint() {
 
 ui.setTheme(storage.getSetting('theme', 'system'));
 window.addEventListener('hashchange', route);
-route();
+
+// A shared recipe link (?import=<recipe page>) opens straight into that recipe.
+const importParam = params.get('import');
+if (importParam) {
+  params.delete('import');
+  const rest = params.toString();
+  history.replaceState(null, '', `${location.pathname}${rest ? `?${rest}` : ''}#/`);
+}
+route().then(() => { if (importParam) importLink(importParam); });
 maybeShowIosHint();
-loadAccount().then(startSyncFor);
+if (location.hash && location.hash !== '#/') loadAccount().then(startSyncFor); // home starts sync itself
+
+const shareButton = document.getElementById('share-site');
+if (shareButton) shareButton.addEventListener('click', shareSite);
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   const local = ['localhost', '127.0.0.1'].includes(location.hostname);

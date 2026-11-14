@@ -3,7 +3,7 @@ import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   b64urlEncode, b64urlDecode, parseCookies, safeEqual, sha256Hex, verifyIdToken,
-  handleLogin, handleCallback, handleMe, handleLogout, SESSION_COOKIE, OAUTH_COOKIE,
+  handleLogin, handleCallback, handleMe, handleLogout, handleDeleteAccount, SESSION_COOKIE, OAUTH_COOKIE,
 } from '../worker/auth.js';
 
 const CLIENT_ID = 'test-client.apps.googleusercontent.com';
@@ -102,6 +102,7 @@ function fakeDB() {
   const sessions = new Map(); // token_hash -> row
   const db = {
     users, sessions,
+    async batch(stmts) { for (const st of stmts) await st.run(); },
     prepare(sql) {
       let args = [];
       const stmt = {
@@ -128,8 +129,14 @@ function fakeDB() {
           } else if (sql.startsWith('INSERT INTO sessions')) {
             const [token_hash, user_id, created, expires] = args;
             sessions.set(token_hash, { token_hash, user_id, created, expires });
-          } else if (sql.startsWith('DELETE FROM sessions')) {
+          } else if (sql.startsWith('DELETE FROM sessions WHERE token_hash')) {
             sessions.delete(args[0]);
+          } else if (sql.startsWith('DELETE FROM sessions WHERE user_id')) {
+            for (const [k, v] of sessions) if (v.user_id === args[0]) sessions.delete(k);
+          } else if (sql.startsWith('DELETE FROM users')) {
+            users.delete(args[0]);
+          } else if (sql.startsWith('DELETE FROM recipes')) {
+            db.deletedRecipesFor = args[0];
           } else {
             throw new Error(`fakeDB: unexpected ${sql}`);
           }
@@ -241,5 +248,26 @@ describe('sign-in flow', () => {
     assert.equal(ok.status, 200);
     assert.equal(env.DB.sessions.size, 0);
     assert.match(setCookies(ok)[0], new RegExp(`^${SESSION_COOKIE}=;.*Max-Age=0`));
+  });
+
+  test('delete account removes the user, sessions and recipes, and needs a same-origin POST', async () => {
+    const res = await handleCallback(callbackRequest({ token: await makeToken() }), env, { getKeys, now: NOW });
+    const token = setCookies(res).find((c) => c.startsWith(`${SESSION_COOKIE}=`)).split(';')[0].split('=')[1];
+    const headers = { Cookie: `${SESSION_COOKIE}=${token}` };
+    const url = 'https://recipes4humans.com/api/account/delete';
+
+    const foreign = await handleDeleteAccount(new Request(url, { method: 'POST', headers: { ...headers, Origin: 'https://evil.example' } }), env);
+    assert.equal(foreign.status, 403);
+    assert.equal(env.DB.users.size, 1);
+
+    const userId = [...env.DB.users.keys()][0];
+    const ok = await handleDeleteAccount(new Request(url, { method: 'POST', headers: { ...headers, Origin: 'https://recipes4humans.com' } }), env);
+    assert.equal(ok.status, 200);
+    assert.equal(env.DB.users.size, 0);
+    assert.equal(env.DB.sessions.size, 0);
+    assert.equal(env.DB.deletedRecipesFor, userId);
+
+    const again = await handleDeleteAccount(new Request(url, { method: 'POST', headers: { ...headers, Origin: 'https://recipes4humans.com' } }), env);
+    assert.equal(again.status, 401);
   });
 });

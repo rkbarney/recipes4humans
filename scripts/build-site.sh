@@ -4,4 +4,4 @@ set -e
 cd "$(dirname "$0")/.."
 rm -rf _site
 mkdir _site
-cp -r index.html manifest.json service-worker.js css js icons _site/
+cp -r index.html privacy.html manifest.json service-worker.js css js icons _site/
