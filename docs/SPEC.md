@@ -334,6 +334,79 @@ Nine tasks, each sized for one agent on a cheaper model, each ending in a pull r
 - Task 4 is the hardest and the one most likely to produce wrong amounts. It gets the strongest review, and a stronger model if the first attempt misses the pass criteria.
 - Claude reviews every pull request against this spec before the owner sees it. The owner reviews at each milestone.
 
+## Version 2: own domain, Google sign-in and sync
+
+Version 1 is working for about ten friends and family. Version 2 moves it to its own domain, recipes4humans.com, and adds an optional Google sign-in so a library follows its owner between phone and computer. Sync is free for now.
+
+### Decisions
+
+| Question | Answer |
+| --- | --- |
+| Domain | recipes4humans.com, bought by the owner. |
+| Moving current users | No automatic handoff. The current users are all friends who know it is a beta; the owner messages them to export from the old address, import on the new one, and re-add the app to the home screen. |
+| Hosting | Cloudflare: one Worker serves the static site, the API under `/api/` and the page fetcher, all from recipes4humans.com. Same origin means no cross-site cookies (which Safari blocks) and no CORS for the app's own calls. |
+| Sign-in | Google only, through Google Identity Services. The Worker checks Google's ID token and sets its own session cookie. No Firebase or other SDK, and still no build step. |
+| Signed out | The app works exactly as version 1: recipes on the device only, nothing on a server. |
+| What syncs | The whole recipe record: text or parts, title, source link, ticked lines and collapsed sections. Ticking a step on the laptop shows on the phone. |
+| Signing out | Wipes that device's recipes and settings. The account keeps them. |
+| Price | Free. Sync moves out of the paid tier. |
+
+### Parts
+
+| Part | Path | What it is |
+| --- | --- | --- |
+| Site Worker | `worker/` | Grows from the page fetcher into the site's Worker: static assets, `/api/auth/*`, `/api/sync`, `/api/account`, and the fetcher at `/api/fetch`. The fetcher keeps its protections. |
+| Database | Cloudflare D1 | Tables: `users` (Google subject id, email, name, created), `sessions` (random token hash, user, expires), `recipes` (user, recipe id, JSON body, updated, deleted, server sequence). |
+| Sync client | `js/sync.js` | Pushes local changes and pulls the account's changes. Pure merge logic kept apart from network code so it runs under `node --test`. |
+| Storage | `js/storage.js` | Records gain `updated` (milliseconds) and `deleted` (a tombstone, so a delete reaches other devices). `listRecipes` hides tombstones. |
+| Service worker | `service-worker.js` | Never caches `/api/`. |
+
+### Sign-in
+
+1. The Sign in with Google button runs in redirect mode, not popup mode, because popups fail in iPhone home-screen apps. Google posts the ID token to `/api/auth/google`.
+2. The Worker checks the token's signature against Google's published keys, and checks the audience (this app's client id), the issuer and the expiry. It finds or creates the user.
+3. The Worker sets a session cookie: random, HttpOnly, Secure, SameSite=Lax, 90 days. Only a hash of the token is stored.
+4. `/api/auth/me` returns the signed-in user or 401. `/api/auth/logout` deletes the session.
+
+The owner sets up the Google Cloud project, the OAuth client id and the consent screen. The consent screen needs a privacy policy page and a home page on recipes4humans.com. Email and profile scopes do not need Google's review.
+
+### Sync
+
+Last write wins, per recipe. The library is small and one person rarely edits the same recipe on two devices at once.
+
+- **Push and pull in one call.** `POST /api/sync` with `{ since, changes }`. The server keeps each incoming record whose `updated` is newer than the stored one, then returns every record changed after `since`, plus a new cursor. The cursor is a server sequence number, not a clock, so a phone with the wrong time cannot lose changes.
+- **When.** On app start, about two seconds after any save (ticks included, so a burst of ticks is one call), when the app returns to the foreground, and when the device comes back online. No live push.
+- **First sign-in on a device.** Local recipes are pushed to the account. Recipe ids are random, so they do not collide with the account's.
+- **Offline.** Changes wait in IndexedDB and go up on the next sync. The cooking view never waits on the network.
+- **Limits.** 1 MB per recipe, 2,000 recipes per account, and a per-user rate limit on `/api/sync`.
+
+### Account
+
+A small account panel: who is signed in, Sign out (wipes this device), Export all (still the backup), and Delete my account, which removes the user, sessions and recipes from D1.
+
+### Privacy
+
+"Pasted text never leaves the phone" stays true while signed out. Signed in, recipes are stored in the owner's Cloudflare account so they can sync; they are never shared, published or read for any other purpose. The privacy policy page says this plainly, and says how to delete everything.
+
+### Build plan
+
+| # | Task | Delivers | Needs |
+| --- | --- | --- | --- |
+| 9 | Move to Cloudflare (done) | The site served by the Worker on recipes4humans.com; fetcher moved to `/api/fetch`; GitHub Pages deploy replaced with `wrangler deploy` in CI | Domain bought and on Cloudflare |
+| 10 | Sign-in spike | Sign in with Google working from an iPhone home-screen app, end to end, before anything else is built on it | 9, Google client id |
+| 11 | Auth and sync API | D1 schema and migrations, the auth and sync endpoints, account deletion, with tests | 10 |
+| 12 | Sync in the app | `updated` and tombstones in storage, `js/sync.js`, sync triggers, the account panel | 11 |
+| 13 | Launch | Privacy policy page, consent screen set to production, a note to current users on how to move | 12 |
+
+### Checks
+
+- Sign in on the iPhone home-screen app and in desktop Chrome; save on one, see it on the other within a few seconds of opening.
+- Tick a step on one device; it shows on the other.
+- Delete on one device; it disappears on the other.
+- Edit while offline, reconnect; the edit arrives.
+- Sign out; the device's library is empty. Sign back in; it returns.
+- Delete account; the D1 rows are gone.
+
 ## Later
 
 The free tier is everything that costs nothing to run; the paid tier is everything that costs money per use. Nothing below is built in version 1.
@@ -354,7 +427,6 @@ These come from common complaints about online recipes, and all can be done with
 ### Paid tier
 
 - **Photo and PDF import.** Cookbook pages and handwritten family recipe cards. Needs a vision model, so it has a cost per use.
-- **Sync across devices.** The local library, backed up to an account.
 - **Smarter rewriting.** Terse rephrasing of each action, and expansion of collective words such as "the spices". Needs a language model.
 
 ### Money and positioning
@@ -370,5 +442,5 @@ None of these blocks task 0, but the first two shape the web app.
 - [ ] Answered: yes. Version 1 keeps the recipe's own wording, cut into single actions.
 - [ ] Should the repository be public or private? Private is the safer default while test recipes are being collected.
 - [ ] Which of the 1.1 candidates, if any, belong in version 1?
-- [ ] Answered: the product and repository are recipes4humans. Still open: is a domain wanted before launch?
+- [ ] Answered: the product and repository are recipes4humans, on recipes4humans.com (see "Version 2").
 - [ ] Does the employer's outside-activity policy need checking before a tip jar or paid tier is added?

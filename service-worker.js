@@ -1,4 +1,4 @@
-const CACHE_NAME = 'recipes4humans-v11';
+const CACHE_NAME = 'recipes4humans-v12';
 const base = self.location.pathname.replace(/\/[^/]*$/, '/') || '/';
 const SHELL_URLS = [
   base,
@@ -41,6 +41,7 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith('/api/')) return; // the API is always live, never cached
   e.respondWith(
     caches.match(e.request).then((cached) => {
       if (cached) return cached;

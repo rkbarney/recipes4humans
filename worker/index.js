@@ -1,22 +1,23 @@
 /**
- * recipes4humans page fetcher.
+ * recipes4humans site Worker.
  *
- * A small Cloudflare Worker. The browser cannot read other sites' pages (CORS), so the app asks this
- * Worker to fetch a recipe page and hand back the text; the app then reads the schema.org Recipe data
- * itself. No logging, no storage. It says plainly who it is in the User-Agent and does not pretend to
+ * Serves the static site (from the ASSETS binding) on recipes4humans.com, redirects www to the bare
+ * domain, and answers the API under /api/.
+ *
+ * /api/fetch is the page fetcher. The browser cannot read other sites' pages (CORS), so the app asks
+ * the Worker to fetch a recipe page and hand back the text; the app then reads the schema.org Recipe
+ * data itself. No logging, no storage. It says plainly who it is in the User-Agent and does not pretend to
  * be a browser.
  *
  * Protections: GET only, Referer must be an allowed origin, http/https only, private and loopback
  * addresses blocked (also after each redirect), per-IP rate limit, 2 MB response cap, 10 s timeout.
  */
 
-// Only pages loaded from these origins may use the proxy.
-const ALLOWED_ORIGINS = [
-  'http://localhost:8080',
-  'https://rkbarney.github.io', // GitHub Pages
-  'https://richardbarney.com', // the same site on its own domain (GitHub Pages serves it here)
-  'https://www.richardbarney.com', // the bare domain redirects here, so this is what browsers send
-];
+// Pages served by this Worker may use the fetcher (same host as the request). So may these origins,
+// for a plain static server on this computer pointed at a deployed Worker.
+const ALLOWED_ORIGINS = ['http://localhost:8080'];
+
+const CANONICAL_HOST = 'recipes4humans.com';
 
 const USER_AGENT = 'recipes4humans/1.0 (+https://github.com/rkbarney/recipes4humans)';
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -38,10 +39,10 @@ function jsonError(message, status) {
   return reply(JSON.stringify({ error: message }), status, 'application/json');
 }
 
-function isAllowedReferer(referer) {
-  let origin;
-  try { origin = new URL(referer).origin; } catch { return false; }
-  return ALLOWED_ORIGINS.includes(origin);
+function isAllowedReferer(referer, requestUrl) {
+  let ref;
+  try { ref = new URL(referer); } catch { return false; }
+  return ref.host === new URL(requestUrl).host || ALLOWED_ORIGINS.includes(ref.origin);
 }
 
 const BLOCKED_HOSTS = [
@@ -113,8 +114,8 @@ async function fetchChecked(start, signal) {
   return null;
 }
 
-export default {
-  async fetch(request, env) {
+/** The page fetcher: GET /api/fetch?url=... */
+export async function handleFetch(request, env) {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
     if (request.method !== 'GET') return jsonError('Method not allowed', 405);
 
@@ -126,7 +127,7 @@ export default {
     }
 
     // The body says why, so the app can tell this refusal from a recipe site refusing the proxy.
-    if (!isAllowedReferer(request.headers.get('Referer') || '')) return jsonError('origin-not-allowed', 403);
+    if (!isAllowedReferer(request.headers.get('Referer') || '', request.url)) return jsonError('origin-not-allowed', 403);
 
     const param = new URL(request.url).searchParams.get('url');
     if (!param) return jsonError('Missing url parameter', 400);
@@ -148,5 +149,18 @@ export default {
     } finally {
       clearTimeout(timer);
     }
+}
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    if (url.hostname === `www.${CANONICAL_HOST}`) {
+      url.hostname = CANONICAL_HOST;
+      return Response.redirect(url.toString(), 301);
+    }
+    if (url.pathname === '/api/fetch') return handleFetch(request, env);
+    if (url.pathname.startsWith('/api/')) return jsonError('Not found', 404);
+    if (env && env.ASSETS) return env.ASSETS.fetch(request);
+    return reply('Not found', 404);
   },
 };

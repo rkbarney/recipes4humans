@@ -10,8 +10,10 @@ export const CONFIG = {
   exportVersion: 1,
   // Saved engine result for the golden recipe, used by ?demo=1 while the engine is unfinished.
   sampleResultUrl: 'tests/fixtures/golden/sample-result.json',
-  // Address of the deployed page-fetcher Worker (see worker/README.md), for example
-  // 'https://recipes4humans-proxy.<account>.workers.dev'. It must be set to the real deployed URL before
-  // "import from a link" works; while it is empty the app tells people to paste the recipe text instead.
-  proxyUrl: 'https://recipes4humans-proxy.rkbarney.workers.dev',
+  // The page fetcher, served by the site Worker on the same origin (see worker/README.md). While it is
+  // empty the app tells people to paste the recipe text instead.
+  proxyUrl: '/api/fetch',
+  // Google OAuth web client (Google Cloud project "recipes4humans"). Not a secret: it appears in every
+  // sign-in page. The Worker checks ID tokens against the same value.
+  googleClientId: '713845423648-vg9qb0nnl9fmph13g5tln0us1kliera6.apps.googleusercontent.com',
 };

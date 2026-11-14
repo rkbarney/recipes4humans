@@ -1,8 +1,23 @@
-name = "recipes4humans-proxy"
+# The site Worker: serves recipes4humans.com (static files plus /api/).
+# Deploy from the project folder with `npm run deploy`, which first copies the site files into _site/.
+name = "recipes4humans"
 main = "index.js"
 compatibility_date = "2025-03-01"
+workers_dev = false
 
-# Rate limit: 60 requests per minute per IP (backstop in case the Referer is faked).
+routes = [
+  { pattern = "recipes4humans.com", custom_domain = true },
+  { pattern = "www.recipes4humans.com", custom_domain = true },
+]
+
+# Every request runs the Worker first, so it can redirect www and route /api/; everything else is
+# handed to the static files.
+[assets]
+directory = "../_site"
+binding = "ASSETS"
+run_worker_first = true
+
+# Rate limit: 60 requests per minute per IP on the page fetcher (backstop in case the Referer is faked).
 # namespace_id only has to be unique within your Cloudflare account.
 [[ratelimits]]
 name = "PROXY_RATE_LIMITER"

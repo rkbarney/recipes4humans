@@ -1,23 +1,31 @@
 # worker/
 
-A small Cloudflare Worker that fetches a recipe page for the app, because browsers cannot read other
-sites' pages directly. It returns the page text with CORS headers. No logging, no storage.
+The site Worker for recipes4humans.com. It serves the static site from `_site/` (the `ASSETS` binding),
+redirects `www.recipes4humans.com` to the bare domain, and answers the API under `/api/`. No logging,
+no storage.
 
-Protections: GET only, Referer must be in `ALLOWED_ORIGINS`, http and https only, private and loopback
-addresses blocked (also on redirects), per-IP rate limit, 2 MB size cap, 10 second timeout. It
-identifies itself as `recipes4humans/1.0 (+https://github.com/rkbarney/recipes4humans)`.
+## /api/fetch
 
-## Deploy
+Fetches a recipe page for the app, because browsers cannot read other sites' pages directly. It returns
+the page text; the app reads the schema.org Recipe data itself.
 
-1. `npx wrangler login`
-2. Edit `ALLOWED_ORIGINS` in `index.js`: add the production origin of the site (scheme and host, no
-   path, for example `https://recipes.example`). The production origin is not decided yet; until it
-   is, only `http://localhost:8080` works.
-3. From this folder: `npx wrangler deploy`
-4. Copy the `https://recipes4humans-proxy.<account>.workers.dev` address it prints into `proxyUrl` in
-   `js/config.js`.
+Protections: GET only, the Referer must be a page on the same host (or an origin in `ALLOWED_ORIGINS`),
+http and https only, private and loopback addresses blocked (also on redirects), per-IP rate limit,
+2 MB size cap, 10 second timeout. It identifies itself as
+`recipes4humans/1.0 (+https://github.com/rkbarney/recipes4humans)`.
 
-To try it from a script, see `scripts/probe-sites.js`.
+## Run and deploy
+
+From the project folder:
+
+- `npm run dev`: copies the site into `_site/` and runs it at http://localhost:8787.
+- `npm run deploy`: copies the site and deploys the Worker to recipes4humans.com (needs `wrangler login`).
+
+Pushes to `main` deploy through `.github/workflows/deploy.yml`, which needs the repository secrets
+`CLOUDFLARE_API_TOKEN` (an API token with Workers edit permission) and `CLOUDFLARE_ACCOUNT_ID`.
+
+The old `recipes4humans-proxy` Worker still serves the GitHub Pages copy of the site. Delete it from the
+Cloudflare dashboard once nobody uses that copy.
 
 ## Checking real sites
 
