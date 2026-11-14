@@ -129,6 +129,11 @@ button.link { border: 0; color: var(--link); text-decoration: underline; padding
 .link-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; margin-top: .5rem; }
 .link-row input { flex: 1 1 14rem; margin: 0; min-height: var(--touch); }
 .link-row button { flex: 0 0 auto; }
+/* Phones: the button goes under the box, full width. Wider screens: side by side. */
+@media (max-width: 600px) {
+  .link-row { flex-direction: column; }
+  .link-row input { flex: none; }
+}
 .link-form .message { margin: .25rem 0 0; min-height: 0; }
 .link-form .message:empty { display: none; }
 
