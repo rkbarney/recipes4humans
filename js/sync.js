@@ -52,7 +52,7 @@ let lastSynced = 0;
 let lastError = '';
 const listeners = new Set();
 
-/** `cb({changed})` after each sync: `changed` is true when records on this device were updated. */
+/** `cb({changed, ids})` after each sync: `ids` are the recipes this sync changed on this device. */
 export function onSynced(cb) {
   listeners.add(cb);
   return () => listeners.delete(cb);
@@ -62,23 +62,25 @@ export function status() {
   return { enabled, lastSynced, error: lastError };
 }
 
-function emit(changed) {
+function emit(ids) {
   for (const cb of listeners) {
-    try { cb({ changed }); } catch { /* ignore */ }
+    try { cb({ changed: ids.size > 0, ids }); } catch { /* ignore */ }
   }
 }
 
 // ---------- Syncing ----------
 
-async function syncOnce() {
-  let changed = false;
+async function syncOnce(changedIds) {
   for (let round = 0; round < MAX_ROUNDS && enabled; round++) {
     const dirty = (await storage.allRecords()).filter((r) => r.dirty).slice(0, BATCH);
     const sent = new Map(dirty.map((r) => [r.id, r.updated]));
+    const body = JSON.stringify({ since: storage.getSetting('syncCursor', 0), changes: dirty.map(toWire) });
     const res = await fetch(CONFIG.syncUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ since: storage.getSetting('syncCursor', 0), changes: dirty.map(toWire) }),
+      body,
+      // keepalive lets a small sync finish after the app goes to the background (iPhone).
+      keepalive: body.length < 60000,
       signal: AbortSignal.timeout(30000),
     });
     if (res.status === 401) {
@@ -94,16 +96,15 @@ async function syncOnce() {
       const act = planApply(local, remote, sent.get(remote.id));
       if (act.type === 'put') {
         await storage.putRecord(act.record);
-        changed = true;
+        changedIds.add(remote.id);
       } else if (act.type === 'remove') {
         await storage.removeRecord(remote.id);
-        changed = true;
+        changedIds.add(remote.id);
       }
     }
     storage.setSetting('syncCursor', data.cursor || 0);
     if (!data.more && dirty.length < BATCH) break;
   }
-  return changed;
 }
 
 /** Sync now (or, if a sync is running, once more right after it). Resolves when done. */
@@ -114,11 +115,11 @@ export function syncNow() {
     return running;
   }
   running = (async () => {
-    let changed = false;
+    const ids = new Set();
     try {
       do {
         again = false;
-        changed = (await syncOnce()) || changed;
+        await syncOnce(ids);
       } while (again && enabled);
       lastSynced = Date.now();
       lastError = '';
@@ -127,7 +128,7 @@ export function syncNow() {
     } finally {
       running = null;
     }
-    emit(changed);
+    emit(ids);
   })();
   return running;
 }
@@ -143,7 +144,8 @@ function wire() {
   if (wired) return;
   wired = true;
   storage.onLocalChange(schedule);
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncNow(); });
+  // Back in front: fetch what changed elsewhere. Leaving: send edits now rather than after the delay.
+  document.addEventListener('visibilitychange', () => { flush(); });
   window.addEventListener('online', () => syncNow());
 }
 
@@ -162,6 +164,12 @@ export async function start(user) {
   }
   enabled = true;
   wire();
+  return syncNow();
+}
+
+/** Sync right away instead of waiting for the delay after an edit. */
+export function flush() {
+  clearTimeout(timer);
   return syncNow();
 }
 

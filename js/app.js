@@ -68,9 +68,20 @@ function startSyncFor(user) {
   if (user && !sync.status().enabled) sync.start(user).catch(() => {});
 }
 
-// When a sync brings in changes, refresh the library if it is on screen.
-sync.onSynced(({ changed }) => {
-  if (changed && location.hash === '#/library') showLibrary();
+// When a sync brings in changes, refresh what is on screen: the library, or the open recipe (keeping
+// the scroll position) so ticks made on another device show up and are not overwritten by a stale copy.
+sync.onSynced(({ changed, ids }) => {
+  if (!changed) return;
+  if (location.hash === '#/library') {
+    showLibrary();
+    return;
+  }
+  const m = location.hash.match(/^#\/recipe\/(.+)$/);
+  const id = m && decodeURIComponent(m[1]);
+  if (!id || !ids.has(id)) return;
+  if (pendingSave && pendingSave.id === id) return; // an edit here is about to be saved and sent; it wins
+  const y = window.scrollY;
+  showRecipe(id).then(() => window.scrollTo(0, y));
 });
 
 // ---------- Engine ----------
@@ -248,11 +259,26 @@ async function submit(input) {
 }
 
 let saveTimer = null;
+let pendingSave = null;
 
 function scheduleSave(rec) {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { storage.saveRecipe(rec).catch(() => {}); }, 200);
+  pendingSave = rec;
+  saveTimer = setTimeout(flushSave, 200);
 }
+
+/** Write a scheduled save now, if there is one. */
+async function flushSave() {
+  clearTimeout(saveTimer);
+  const rec = pendingSave;
+  pendingSave = null;
+  if (rec) await storage.saveRecipe(rec).catch(() => {});
+}
+
+// Leaving the app (switching away, locking the phone): save the last tick now so it can be synced.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && pendingSave) flushSave().then(() => sync.flush());
+});
 
 async function showRecipe(id) {
   releaseWakeLock();
