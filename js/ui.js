@@ -410,8 +410,8 @@ function footer() {
  * @returns {{setLinkStatus: (text: string) => void, setBusy: (busy: boolean) => void, openText: (focus?: boolean) => void}}
  */
 export function renderHome(root, { onSubmit, onParts, onLink, message, recipes = [], onStar, onDelete, signInUrl }) {
-  const url = h('input', { id: 'url', type: 'url', placeholder: 'Paste a recipe link', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', inputmode: 'url' });
-  const linkButton = h('button', { type: 'submit', class: 'primary' }, 'Start cooking');
+  const url = h('input', { id: 'url', type: 'url', placeholder: 'Paste recipe link', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', inputmode: 'url' });
+  const linkButton = h('button', { type: 'submit', class: 'primary' }, 'Reformat for your phone');
   const linkStatus = h('p', { class: 'message', role: 'status' }, message || '');
   const linkForm = h('form', {
     class: 'link-form',
@@ -465,7 +465,7 @@ export function renderHome(root, { onSubmit, onParts, onLink, message, recipes =
   }
 
   mount(root,
-    h('h1', null, 'Recipes reformatted for your phone.'),
+    h('h1', { class: 'sr-only' }, 'recipes4humans: recipes reformatted for your phone'),
     linkForm,
     details,
     accountSlot,
