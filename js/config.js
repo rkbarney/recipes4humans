@@ -13,7 +13,6 @@ export const CONFIG = {
   // The page fetcher, served by the site Worker on the same origin (see worker/README.md). While it is
   // empty the app tells people to paste the recipe text instead.
   proxyUrl: '/api/fetch',
-  // Google OAuth web client (Google Cloud project "recipes4humans"). Not a secret: it appears in every
-  // sign-in page. The Worker checks ID tokens against the same value.
-  googleClientId: '713845423648-vg9qb0nnl9fmph13g5tln0us1kliera6.apps.googleusercontent.com',
+  // Account endpoints on the site Worker (worker/auth.js). The Google client id lives in worker/wrangler.toml.
+  authBase: '/api/auth',
 };

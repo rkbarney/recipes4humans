@@ -12,6 +12,46 @@ const root = document.getElementById('app');
 const params = new URLSearchParams(location.search);
 const DEMO = params.get('demo') === '1';
 
+// ---------- Account ----------
+
+// What the Worker sent back after Google sign-in (?signin=ok|failed|cancelled), shown once in the library.
+const SIGNIN_MESSAGES = {
+  ok: 'Signed in.',
+  failed: 'Sign-in did not work. Please try again.',
+  cancelled: '',
+};
+let pendingSigninMessage;
+if (params.has('signin')) {
+  const msg = SIGNIN_MESSAGES[params.get('signin')];
+  params.delete('signin');
+  const rest = params.toString();
+  history.replaceState(null, '', `${location.pathname}${rest ? `?${rest}` : ''}${location.hash}`);
+  pendingSigninMessage = msg;
+}
+
+/** The signed-in user, null when signed out, or undefined when the account service cannot be reached. */
+async function loadAccount() {
+  if (location.protocol === 'file:') return undefined;
+  try {
+    const res = await fetch(`${CONFIG.authBase}/me`, { cache: 'no-store', signal: AbortSignal.timeout(4000) });
+    if (res.status === 401) return null;
+    if (!res.ok) return undefined;
+    return (await res.json()).user || null;
+  } catch {
+    return undefined;
+  }
+}
+
+async function signOut() {
+  try {
+    await fetch(`${CONFIG.authBase}/logout`, { method: 'POST', signal: AbortSignal.timeout(8000) });
+    libraryMessage = 'Signed out.';
+  } catch {
+    libraryMessage = 'Could not sign out. Check the connection and try again.';
+  }
+  showLibrary();
+}
+
 // ---------- Engine ----------
 
 function isNotImplemented(err) {
@@ -263,13 +303,23 @@ let libraryMessage = '';
 
 async function showLibrary() {
   releaseWakeLock();
+  const token = navToken;
   let recipes = [];
   try { recipes = await storage.listRecipes(); } catch { recipes = []; }
+  const user = await loadAccount();
+  if (token !== navToken) return; // the person went to another screen while we waited
+  if (pendingSigninMessage !== undefined) {
+    libraryMessage = libraryMessage || pendingSigninMessage;
+    pendingSigninMessage = undefined;
+  }
   const message = libraryMessage;
   libraryMessage = '';
   ui.renderLibrary(root, {
     recipes,
     message,
+    user,
+    signInUrl: `${CONFIG.authBase}/login`,
+    onSignOut: signOut,
     theme: storage.getSetting('theme', 'system'),
     persistent: storage.isPersistent(),
     onTheme: (t) => { storage.setSetting('theme', t); ui.setTheme(t); },

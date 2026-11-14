@@ -704,6 +704,7 @@ export function renderLibrary(root, ctx) {
     ctx.persistent ? null : h('p', { class: 'message' }, 'Saving is unavailable in this browser. Recipes will be lost when you close the page; use Export to keep them.'),
     ctx.message ? h('p', { class: 'message', role: 'status' }, ctx.message) : null,
     list,
+    accountSection(ctx),
     h('h2', null, 'Backup'),
     h('p', { class: 'note' }, 'Recipes live only in this browser. Export them to a file to keep a copy or move them to another device.'),
     h('p', { class: 'row' },
@@ -712,6 +713,26 @@ export function renderLibrary(root, ctx) {
       fileInput),
     h('h2', null, 'Theme'),
     h('div', { class: 'choices' }, themeRadio('system', 'System'), themeRadio('light', 'Light'), themeRadio('dark', 'Dark')));
+}
+
+/** Account block in the library. `ctx.user`: object when signed in, null when signed out, undefined when unknown. */
+function accountSection(ctx) {
+  let body;
+  if (ctx.user) {
+    body = [
+      h('p', null, `Signed in as ${ctx.user.name || ctx.user.email}.`),
+      h('p', { class: 'note' }, 'Sync across devices is coming next. Until then, recipes are still kept only in this browser.'),
+      h('p', { class: 'row' }, h('button', { type: 'button', onclick: ctx.onSignOut }, 'Sign out')),
+    ];
+  } else if (ctx.user === null) {
+    body = [
+      h('p', { class: 'note' }, 'Sign in to keep your recipes on all your devices. Sync is coming next; signing in does not change your recipes yet.'),
+      h('p', { class: 'row' }, h('a', { class: 'button', href: ctx.signInUrl }, 'Sign in with Google')),
+    ];
+  } else {
+    body = [h('p', { class: 'note' }, 'Sign-in is unavailable right now (offline?).')];
+  }
+  return h('section', { class: 'account' }, h('h2', null, 'Account'), ...body);
 }
 
 // --- iPhone hint ---

@@ -10,6 +10,21 @@ routes = [
   { pattern = "www.recipes4humans.com", custom_domain = true },
 ]
 
+# Public settings. GOOGLE_CLIENT_ID is the OAuth web client from the Google Cloud project
+# "recipes4humans" (not a secret). PUBLIC_ORIGIN is where Google sends people back after sign-in;
+# `npm run dev` overrides it with http://localhost:8787.
+[vars]
+GOOGLE_CLIENT_ID = "713845423648-vg9qb0nnl9fmph13g5tln0us1kliera6.apps.googleusercontent.com"
+PUBLIC_ORIGIN = "https://recipes4humans.com"
+
+# Accounts and sessions. Schema in migrations/; apply with
+# `wrangler d1 migrations apply recipes4humans --remote` (CI does this before each deploy).
+[[d1_databases]]
+binding = "DB"
+database_name = "recipes4humans"
+database_id = "1b4b74b7-95b7-4e1f-89bd-29289d865ed0"
+migrations_dir = "migrations"
+
 # Every request runs the Worker first, so it can redirect www and route /api/; everything else is
 # handed to the static files.
 [assets]
