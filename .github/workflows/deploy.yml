@@ -38,3 +38,6 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: worker
           wranglerVersion: '4.69.0'
+          command: |
+            d1 migrations apply recipes4humans --remote
+            deploy

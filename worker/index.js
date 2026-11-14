@@ -13,6 +13,8 @@
  * addresses blocked (also after each redirect), per-IP rate limit, 2 MB response cap, 10 s timeout.
  */
 
+import { handleLogin, handleCallback, handleMe, handleLogout } from './auth.js';
+
 // Pages served by this Worker may use the fetcher (same host as the request). So may these origins,
 // for a plain static server on this computer pointed at a deployed Worker.
 const ALLOWED_ORIGINS = ['http://localhost:8080'];
@@ -159,6 +161,10 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
     if (url.pathname === '/api/fetch') return handleFetch(request, env);
+    if (url.pathname === '/api/auth/login') return handleLogin(request, env);
+    if (url.pathname === '/api/auth/google') return handleCallback(request, env);
+    if (url.pathname === '/api/auth/me') return handleMe(request, env);
+    if (url.pathname === '/api/auth/logout') return handleLogout(request, env);
     if (url.pathname.startsWith('/api/')) return jsonError('Not found', 404);
     if (env && env.ASSETS) return env.ASSETS.fetch(request);
     return reply('Not found', 404);
