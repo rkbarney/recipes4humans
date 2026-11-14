@@ -349,15 +349,15 @@ export const EXAMPLE_AFTER = [
 // [what the recipe says (shown struck through), what you get]. "what you get" is a string, or a list of
 // [marker, text] lines, shown indented, for one line that becomes several.
 const FIXES = [
-  ['phone screen locks', 'phone screen stays ON'],
-  ['add the salt', 'add 1 tsp salt'],
-  ['melt the butter, add the rice, then simmer', [['a', 'Melt 1 tbsp butter.'], ['b', 'Add 2 cups rice.'], ['c', 'Simmer 15 minutes.']]],
+  ['Phone screen locks.', 'Phone screen stays ON.'],
+  ['Add the salt.', 'Add 1 tsp salt.'],
+  ['Melt the butter, add the rice, then simmer.', [['a', 'Melt 1 tbsp butter.'], ['b', 'Add 2 cups rice.'], ['c', 'Simmer 15 minutes.']]],
   ['1 onion, diced', [['step 1', 'Dice 1 onion, in Prep, before the pan is hot.']]],
-  ['use the remaining cheese', 'Cheese: 5 oz for the sauce, 1 oz for the top'],
-  ['simmer 20 minutes', [['', 'Simmer 20 minutes.'], ['', 'Meanwhile: dice the parsley.']]],
-  ['where was I?', 'Tap a line to tick it off. It stays ticked'],
-  ['life story, ads, pop-up video', 'just the recipe'],
-  ['create an account', 'no sign-up, saved on your phone'],
+  ['Use the remaining cheese.', 'Cheese: 5 oz for the sauce, 1 oz for the top.'],
+  ['Simmer 20 minutes.', [['', 'Simmer 20 minutes.'], ['Meanwhile', 'Dice the parsley.']]],
+  ['Where was I?', 'Tap a line to tick it off. It stays ticked.'],
+  ['Life story, ads, pop-up video.', 'Just the recipe.'],
+  ['Create an account.', 'No sign-up. Saved on your phone.'],
 ];
 
 /**
