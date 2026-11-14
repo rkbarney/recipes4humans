@@ -6,11 +6,9 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: deploy
   cancel-in-progress: true
 
 jobs:
@@ -27,17 +25,16 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: production
+      url: https://recipes4humans.com
     steps:
       - uses: actions/checkout@v4
       - name: Collect the site files
-        run: |
-          mkdir _site
-          cp -r index.html manifest.json service-worker.js css js icons _site/
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+        run: sh scripts/build-site.sh
+      # Needs repository secrets CLOUDFLARE_API_TOKEN (Workers edit permission) and CLOUDFLARE_ACCOUNT_ID.
+      - uses: cloudflare/wrangler-action@v3
         with:
-          path: _site
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker
+          wranglerVersion: '4.69.0'

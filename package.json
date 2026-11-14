@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "test": "node --test 'tests/*.test.js'",
-    "live": "node scripts/live-check.js"
+    "live": "node scripts/live-check.js",
+    "build": "sh scripts/build-site.sh",
+    "dev": "sh scripts/build-site.sh && cd worker && wrangler dev",
+    "deploy": "sh scripts/build-site.sh && cd worker && wrangler deploy"
   }
 }

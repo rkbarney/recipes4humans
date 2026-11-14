@@ -7,7 +7,7 @@
 //              starting with # are skipped). The first URL is the control: it must work, or the run fails.
 //
 // It needs the network, so it is not part of `npm test`. The Worker address comes from js/config.js and
-// the Referer is the GitHub Pages origin, the same as the app sends.
+// the Referer is the site's origin, the same as the app sends.
 //
 // Output (all under local-recipes/, which is git-ignored, so no recipe text is ever committed):
 //   live/NN-site.txt   each recipe that was read, in the format scripts/stress.js reads
@@ -23,10 +23,10 @@ import { CONFIG } from '../js/config.js';
 import { extractRecipe } from '../js/extract.js';
 import { rewriteParts } from '../js/engine/index.js';
 
-const PROXY = process.env.PROXY_URL || CONFIG.proxyUrl; // PROXY_URL is only for testing this script
+const PROXY = process.env.PROXY_URL || new URL(CONFIG.proxyUrl, 'https://recipes4humans.com').href; // PROXY_URL is only for testing this script
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const file = process.argv.slice(2).find((a) => !a.startsWith('--')) || join(root, 'local-recipes/probe-urls.txt');
-const ORIGIN = 'https://rkbarney.github.io/';
+const ORIGIN = 'https://recipes4humans.com/';
 const outDir = join(root, 'local-recipes/live');
 
 if (!PROXY) {
