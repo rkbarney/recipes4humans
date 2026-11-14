@@ -195,7 +195,7 @@ function origin(env) {
 }
 
 /** Same-site check for state-changing calls: the Origin header must be this host. */
-function sameOrigin(request) {
+export function sameOrigin(request) {
   const o = request.headers.get('Origin');
   if (!o) return false;
   try { return new URL(o).host === new URL(request.url).host; } catch { return false; }

@@ -14,6 +14,7 @@
  */
 
 import { handleLogin, handleCallback, handleMe, handleLogout } from './auth.js';
+import { handleSync } from './sync.js';
 
 // Pages served by this Worker may use the fetcher (same host as the request). So may these origins,
 // for a plain static server on this computer pointed at a deployed Worker.
@@ -165,6 +166,7 @@ export default {
     if (url.pathname === '/api/auth/google') return handleCallback(request, env);
     if (url.pathname === '/api/auth/me') return handleMe(request, env);
     if (url.pathname === '/api/auth/logout') return handleLogout(request, env);
+    if (url.pathname === '/api/sync') return handleSync(request, env);
     if (url.pathname.startsWith('/api/')) return jsonError('Not found', 404);
     if (env && env.ASSETS) return env.ASSETS.fetch(request);
     return reply('Not found', 404);

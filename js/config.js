@@ -15,4 +15,6 @@ export const CONFIG = {
   proxyUrl: '/api/fetch',
   // Account endpoints on the site Worker (worker/auth.js). The Google client id lives in worker/wrangler.toml.
   authBase: '/api/auth',
+  // Recipe sync on the site Worker (worker/sync.js).
+  syncUrl: '/api/sync',
 };
