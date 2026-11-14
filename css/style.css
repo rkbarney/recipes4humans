@@ -137,8 +137,9 @@ details.text-option { margin: .5rem 0 0; }
 details.text-option summary {
   display: flex;
   align-items: center;
-  min-height: var(--touch);
-  color: var(--link);
+  min-height: 36px;
+  font-size: .75rem;
+  color: var(--muted);
   text-decoration: underline;
   cursor: pointer;
 }

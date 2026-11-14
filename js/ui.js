@@ -367,7 +367,7 @@ const FIXES = [
  */
 export function renderHome(root, { onSubmit, onParts, onLink, message }) {
   const url = h('input', { id: 'url', type: 'url', placeholder: 'Paste a recipe link', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', inputmode: 'url' });
-  const linkButton = h('button', { type: 'submit', class: 'primary' }, 'Rewrite');
+  const linkButton = h('button', { type: 'submit', class: 'primary' }, 'Start cooking');
   const linkStatus = h('p', { class: 'message', role: 'status' }, message || '');
   const linkForm = h('form', {
     class: 'link-form',
@@ -396,7 +396,7 @@ export function renderHome(root, { onSubmit, onParts, onLink, message }) {
     h('label', { for: 'paste', class: 'sr-only' }, 'Recipe text'),
     text,
     h('div', { class: 'row' },
-      h('button', { type: 'submit', class: 'primary' }, 'Rewrite'),
+      h('button', { type: 'submit', class: 'primary' }, 'Start cooking'),
       h('button', { type: 'button', class: 'link', onclick: onParts }, 'Paste ingredients and steps separately')),
     textStatus);
 
@@ -406,10 +406,9 @@ export function renderHome(root, { onSubmit, onParts, onLink, message }) {
 
   mount(root,
     h('h1', null, 'Recipes reformatted for your phone.'),
-    h('p', { class: 'lede' }, 'Paste a recipe link and start cooking.'),
     linkForm,
     details,
-    h('h2', null, 'Recipes4humans fixes all of the recipe gotchas that trip you up in the kitchen:'),
+    h('h2', null, 'Recipes4humans fixes:'),
     h('ul', { class: 'fixes' }, FIXES.map(([before, after]) =>
       h('li', null, h('s', null, before),
         typeof after === 'string'
