@@ -5,7 +5,7 @@
 // IndexedDB or localStorage is unavailable the app falls back to memory for this page load.
 //
 // Record: { id, title, text?, parts?: {ingredients, steps}, sourceUrl?, created, checked: {lineId: true}, collapsed: {sectionOrStepKey: true},
-//          updated?, dirty?, deleted? }
+//          starred?, updated?, dirty?, deleted? }
 //
 // Sync fields (Version 2): `updated` is the time of the last edit on any device (ms); `dirty` marks an edit
 // made here that the server has not taken yet; a delete keeps a tombstone { id, deleted: true, updated, dirty }
@@ -53,8 +53,14 @@ export function normalizeRecipe(raw, now = Date.now()) {
   if (hasText) rec.text = raw.text;
   else rec.parts = { ingredients: p.ingredients, steps: p.steps };
   if (typeof raw.sourceUrl === 'string' && raw.sourceUrl) rec.sourceUrl = raw.sourceUrl;
+  if (raw.starred === true) rec.starred = true;
   if (Number.isFinite(raw.updated)) rec.updated = raw.updated;
   return rec;
+}
+
+/** Library order: starred recipes first, then newest first. */
+export function sortRecipes(list) {
+  return [...list].sort((a, b) => (b.starred ? 1 : 0) - (a.starred ? 1 : 0) || (b.created || 0) - (a.created || 0));
 }
 
 /** The JSON object written by "Export all". */
@@ -249,7 +255,7 @@ export async function allRecords() {
 }
 
 export async function listRecipes() {
-  return (await allRecords()).filter((r) => !r.deleted).sort((a, b) => (b.created || 0) - (a.created || 0));
+  return sortRecipes((await allRecords()).filter((r) => !r.deleted));
 }
 
 /** One record, tombstones included (for sync). */

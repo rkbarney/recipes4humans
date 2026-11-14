@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { newId, normalizeRecipe, buildExport, parseImport, mergeRecipes } from '../js/storage.js';
+import { newId, normalizeRecipe, buildExport, parseImport, mergeRecipes, sortRecipes } from '../js/storage.js';
 
 const rec = (id, extra = {}) => ({ id, title: `Recipe ${id}`, text: 'Ingredients\n- 1 egg\nPreparation\n1. Boil it.', created: 1000, checked: {}, ...extra });
 
@@ -56,4 +56,20 @@ test('merge adds new ids and skips duplicates, keeping the existing copy', () =>
   assert.deepEqual(toAdd.map((r) => r.id), ['c', 'd']);
   assert.equal(skipped, 2);
   assert.equal(mergeRecipes([], []).skipped, 0);
+});
+
+test('sortRecipes puts starred recipes first, newest first within each group', () => {
+  const list = [rec('old', { created: 1 }), rec('new', { created: 3 }), rec('star-old', { created: 2, starred: true }), rec('star-new', { created: 4, starred: true })];
+  assert.deepEqual(sortRecipes(list).map((r) => r.id), ['star-new', 'star-old', 'new', 'old']);
+});
+
+test('normalizeRecipe keeps a star and drops anything else in that field', () => {
+  assert.equal(normalizeRecipe(rec('a', { starred: true })).starred, true);
+  assert.equal('starred' in normalizeRecipe(rec('b', { starred: 'yes' })), false);
+});
+
+test('buildExport leaves out sync bookkeeping', () => {
+  const out = buildExport([{ ...rec('a'), dirty: true, updated: 5, starred: true }]);
+  assert.equal('dirty' in out.recipes[0], false);
+  assert.equal(out.recipes[0].starred, true);
 });

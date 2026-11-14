@@ -256,3 +256,20 @@ export async function handleLogout(request, env) {
   if (token && env.DB) await env.DB.prepare('DELETE FROM sessions WHERE token_hash = ?').bind(await sha256Hex(token)).run();
   return json({ ok: true }, 200, { 'Set-Cookie': cookie(SESSION_COOKIE, '', { maxAge: 0 }) });
 }
+
+/**
+ * POST /api/account/delete: remove the signed-in user, their sessions and their synced recipes.
+ * Recipes already on the person's devices stay there.
+ */
+export async function handleDeleteAccount(request, env) {
+  if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
+  if (!sameOrigin(request)) return json({ error: 'origin-not-allowed' }, 403);
+  const user = await currentUser(request, env);
+  if (!user) return json({ error: 'signed-out' }, 401);
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM recipes WHERE user_id = ?').bind(user.id),
+    env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(user.id),
+    env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id),
+  ]);
+  return json({ ok: true }, 200, { 'Set-Cookie': cookie(SESSION_COOKIE, '', { maxAge: 0 }) });
+}

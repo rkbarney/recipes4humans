@@ -17,4 +17,5 @@ export const CONFIG = {
   authBase: '/api/auth',
   // Recipe sync on the site Worker (worker/sync.js).
   syncUrl: '/api/sync',
+  deleteAccountUrl: '/api/account/delete',
 };

@@ -230,6 +230,71 @@ ul.library { list-style: none; margin: 0; padding: 0; }
 .library .rtitle span { display: block; }
 .library .date { color: var(--muted); font-size: .8rem; }
 .library button.mini { min-height: var(--touch); padding: 0 8px; }
+
+/* Stars: starred recipes sort to the top of the library. */
+.library button.star {
+  border: 0;
+  background: transparent;
+  min-width: var(--touch);
+  padding: 0;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--muted);
+}
+.library button.star.on { color: #c98a00; }
+button.star-button.on { font-weight: 600; }
+
+/* Header: Share sits beside Library and looks like a link. */
+.bar nav { display: flex; align-items: center; gap: 16px; }
+.bar button.navlink { border: 0; background: transparent; padding: 0; min-height: var(--touch); color: var(--text); text-decoration: underline; font-size: inherit; }
+
+/* Google's standard "Sign in with Google" button, filled blue. */
+a.google-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 2px 16px 2px 2px;
+  background: #1a73e8;
+  color: #fff;
+  border-radius: 4px;
+  font-family: Roboto, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: .01em;
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+}
+a.google-button:hover { background: #1765cc; }
+a.google-button .g-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #fff;
+  border-radius: 3px;
+}
+.home-account { margin: 1rem 0; }
+.home-account .note { margin: 0 0 .5rem; }
+
+.footer { margin-top: 2.5rem; }
+
+/* Toast: short confirmations such as "Link copied." */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  max-width: calc(100% - 32px);
+  padding: 10px 16px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: .95rem;
+  opacity: 0;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
 .choices { display: flex; flex-wrap: wrap; gap: 0 20px; }
 .choice { display: inline-flex; align-items: center; gap: 6px; min-height: var(--touch); margin: 0; }
 .choice input { width: 20px; height: 20px; margin: 0; }

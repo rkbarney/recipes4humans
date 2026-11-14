@@ -394,9 +394,9 @@ A small account panel: who is signed in, Sign out (wipes this device), Export al
 | --- | --- | --- | --- |
 | 9 | Move to Cloudflare (done) | The site served by the Worker on recipes4humans.com; fetcher moved to `/api/fetch`; GitHub Pages deploy replaced with `wrangler deploy` in CI | Domain bought and on Cloudflare |
 | 10 | Sign-in spike (done) | Sign in with Google working from an iPhone home-screen app, end to end, before anything else is built on it | 9, Google client id |
-| 11 | Auth and sync API (done, except account deletion) | D1 schema and migrations, the auth and sync endpoints, account deletion, with tests | 10 |
+| 11 | Auth and sync API (done) | D1 schema and migrations, the auth and sync endpoints, account deletion, with tests | 10 |
 | 12 | Sync in the app (done) | `updated` and tombstones in storage, `js/sync.js`, sync triggers, the account panel | 11 |
-| 13 | Launch | Privacy policy page, consent screen set to production, a note to current users on how to move | 12 |
+| 13 | Launch (privacy page done) | Privacy policy page, consent screen set to production, a note to current users on how to move | 12 |
 
 ### Checks
 

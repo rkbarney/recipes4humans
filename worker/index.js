@@ -13,7 +13,7 @@
  * addresses blocked (also after each redirect), per-IP rate limit, 2 MB response cap, 10 s timeout.
  */
 
-import { handleLogin, handleCallback, handleMe, handleLogout } from './auth.js';
+import { handleLogin, handleCallback, handleMe, handleLogout, handleDeleteAccount } from './auth.js';
 import { handleSync } from './sync.js';
 
 // Pages served by this Worker may use the fetcher (same host as the request). So may these origins,
@@ -167,6 +167,7 @@ export default {
     if (url.pathname === '/api/auth/me') return handleMe(request, env);
     if (url.pathname === '/api/auth/logout') return handleLogout(request, env);
     if (url.pathname === '/api/sync') return handleSync(request, env);
+    if (url.pathname === '/api/account/delete') return handleDeleteAccount(request, env);
     if (url.pathname.startsWith('/api/')) return jsonError('Not found', 404);
     if (env && env.ASSETS) return env.ASSETS.fetch(request);
     return reply('Not found', 404);

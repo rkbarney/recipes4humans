@@ -360,12 +360,56 @@ const FIXES = [
   ['Create an account.', 'No sign-up. Saved on your phone.'],
 ];
 
+/** The saved-recipe list: starred first (storage sorts), each with a star toggle and Delete. */
+export function recipeList(recipes, { onStar, onDelete }) {
+  return h('ul', { class: 'library' }, recipes.map((r) =>
+    h('li', null,
+      h('button', {
+        type: 'button',
+        class: `star${r.starred ? ' on' : ''}`,
+        'aria-pressed': r.starred ? 'true' : 'false',
+        'aria-label': r.starred ? `Unstar ${r.title}` : `Star ${r.title}`,
+        title: r.starred ? 'Starred' : 'Star',
+        onclick: () => onStar(r),
+      }, r.starred ? '\u2605' : '\u2606'),
+      h('a', { href: `#/recipe/${encodeURIComponent(r.id)}`, class: 'rtitle' },
+        h('span', null, r.title), h('span', { class: 'date' }, formatDate(r.created))),
+      h('button', { type: 'button', class: 'mini', 'aria-label': `Delete ${r.title}`, onclick: () => onDelete(r) }, 'Delete'))));
+}
+
+const GOOGLE_G = '<svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+
+/** Google's standard blue "Sign in with Google" button (filled_blue style), as a plain link. */
+export function googleButton(href) {
+  const logo = h('span', { class: 'g-logo' });
+  logo.innerHTML = GOOGLE_G;
+  return h('a', { class: 'google-button', href }, logo, h('span', { class: 'g-text' }, 'Sign in with Google'));
+}
+
+/** A short message at the bottom of the screen that goes away by itself. */
+export function toast(text) {
+  let el = document.getElementById('toast');
+  if (!el) {
+    el = h('div', { id: 'toast', class: 'toast', role: 'status' });
+    document.body.append(el);
+  }
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function footer() {
+  return h('p', { class: 'footer note' }, h('a', { href: 'privacy.html' }, 'Privacy'));
+}
+
 /**
  * @param {HTMLElement} root
- * @param {{onSubmit: (text: string) => void, onParts: () => void, onLink: (url: string) => void, message?: string}} opts
+ * @param {{onSubmit: (text: string) => void, onParts: () => void, onLink: (url: string) => void, message?: string,
+ *          recipes?: object[], onStar?: Function, onDelete?: Function, signInUrl?: string}} opts
  * @returns {{setLinkStatus: (text: string) => void, setBusy: (busy: boolean) => void, openText: (focus?: boolean) => void}}
  */
-export function renderHome(root, { onSubmit, onParts, onLink, message }) {
+export function renderHome(root, { onSubmit, onParts, onLink, message, recipes = [], onStar, onDelete, signInUrl }) {
   const url = h('input', { id: 'url', type: 'url', placeholder: 'Paste a recipe link', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', inputmode: 'url' });
   const linkButton = h('button', { type: 'submit', class: 'primary' }, 'Start cooking');
   const linkStatus = h('p', { class: 'message', role: 'status' }, message || '');
@@ -404,29 +448,56 @@ export function renderHome(root, { onSubmit, onParts, onLink, message }) {
     h('summary', null, 'Or paste the recipe text'),
     textForm);
 
+  // Shown only while signed out; filled in once the account state is known.
+  const accountSlot = h('div', { class: 'home-account' });
+
+  if (recipes.length) {
+    // Returning cook: no introduction, just the boxes and the library.
+    mount(root,
+      h('h1', { class: 'sr-only' }, 'recipes4humans'),
+      linkForm,
+      details,
+      h('h2', null, 'Your recipes'),
+      recipeList(recipes, { onStar, onDelete }),
+      accountSlot,
+      footer());
+    return homeHandle();
+  }
+
   mount(root,
     h('h1', null, 'Recipes reformatted for your phone.'),
     linkForm,
     details,
+    accountSlot,
     h('h2', null, 'Recipes4humans fixes:'),
     h('ul', { class: 'fixes' }, FIXES.map(([before, after]) =>
       h('li', null, h('s', null, before),
         typeof after === 'string'
           ? h('span', { class: 'after' }, after)
           : h('ol', { class: 'after-lines' }, after.map(([mark, text]) =>
-              h('li', null, mark ? h('span', { class: 'mark' }, /^[a-z]$/.test(mark) ? `${mark}.` : mark) : null, text)))))));
+              h('li', null, mark ? h('span', { class: 'mark' }, /^[a-z]$/.test(mark) ? `${mark}.` : mark) : null, text)))))),
+    footer());
+  return homeHandle();
 
-  return {
-    setLinkStatus: (t) => { linkStatus.textContent = t; },
-    setBusy: (busy) => {
-      linkButton.disabled = busy;
-      url.disabled = busy;
-    },
-    openText: (focus) => {
-      details.open = true;
-      if (focus) text.focus();
-    },
-  };
+  function homeHandle() {
+    return {
+      setLinkStatus: (t) => { linkStatus.textContent = t; },
+      setBusy: (busy) => {
+        linkButton.disabled = busy;
+        url.disabled = busy;
+      },
+      openText: (focus) => {
+        details.open = true;
+        if (focus) text.focus();
+      },
+      /** `user` null = signed out: offer sign-in. Anything else: show nothing. */
+      setAccount: (user) => {
+        accountSlot.replaceChildren(...(user === null && signInUrl
+          ? [h('p', { class: 'note' }, 'Keep your recipes on all your devices.'), googleButton(signInUrl)]
+          : []));
+      },
+    };
+  }
 }
 
 /** Two boxes, for when the engine cannot tell the ingredients from the steps. */
@@ -620,7 +691,14 @@ export function renderRecipe(root, ctx) {
       h('h1', null, result.title || recipe.title || 'Recipe'),
       source ? h('p', { class: 'source' }, 'Source: ', h('a', { href: source, rel: 'noopener noreferrer' }, host)) : null,
       h('p', { class: 'row recipe-actions' },
-        h('button', { type: 'button', onclick: () => (ctx.onPrint ? ctx.onPrint() : window.print()) }, 'Print')),
+        h('button', { type: 'button', onclick: () => (ctx.onPrint ? ctx.onPrint() : window.print()) }, 'Print'),
+        ctx.onShare ? h('button', { type: 'button', onclick: ctx.onShare }, 'Share') : null,
+        ctx.onStar ? h('button', {
+          type: 'button',
+          class: `star-button${recipe.starred ? ' on' : ''}`,
+          'aria-pressed': recipe.starred ? 'true' : 'false',
+          onclick: ctx.onStar,
+        }, recipe.starred ? '\u2605 Starred' : '\u2606 Star') : null),
       section('sec:ingredients', 'Ingredients', (result.ingredients || []).map((i) => `g:${i.id}`),
         h('ul', { class: 'lines gather-list' }, (result.ingredients || []).map(ingredientLine))),
       (result.prep || []).length
@@ -686,11 +764,7 @@ export function renderLibrary(root, ctx) {
   });
 
   const list = ctx.recipes.length
-    ? h('ul', { class: 'library' }, ctx.recipes.map((r) =>
-        h('li', null,
-          h('a', { href: `#/recipe/${encodeURIComponent(r.id)}`, class: 'rtitle' },
-            h('span', null, r.title), h('span', { class: 'date' }, formatDate(r.created))),
-          h('button', { type: 'button', class: 'mini', 'aria-label': `Delete ${r.title}`, onclick: () => ctx.onDelete(r) }, 'Delete'))))
+    ? recipeList(ctx.recipes, { onStar: ctx.onStar, onDelete: ctx.onDelete })
     : h('p', null, 'No saved recipes yet. Recipes are saved here when you rewrite them.');
 
   const themeRadio = (value, label) => {
@@ -712,7 +786,8 @@ export function renderLibrary(root, ctx) {
       h('label', { class: 'button', for: 'import-file' }, 'Import'),
       fileInput),
     h('h2', null, 'Theme'),
-    h('div', { class: 'choices' }, themeRadio('system', 'System'), themeRadio('light', 'Light'), themeRadio('dark', 'Dark')));
+    h('div', { class: 'choices' }, themeRadio('system', 'System'), themeRadio('light', 'Light'), themeRadio('dark', 'Dark')),
+    footer());
 }
 
 function syncNote(st = {}) {
@@ -731,12 +806,14 @@ function accountSection(ctx) {
     body = [
       h('p', null, `Signed in as ${ctx.user.name || ctx.user.email}.`),
       h('p', { class: 'note' }, syncNote(ctx.sync)),
-      h('p', { class: 'row' }, h('button', { type: 'button', onclick: ctx.onSignOut }, 'Sign out')),
+      h('p', { class: 'row' },
+        h('button', { type: 'button', onclick: ctx.onSignOut }, 'Sign out'),
+        h('button', { type: 'button', class: 'link', onclick: ctx.onDeleteAccount }, 'Delete my account')),
     ];
   } else if (ctx.user === null) {
     body = [
       h('p', { class: 'note' }, 'Sign in to keep your recipes on all your devices. Recipes already on this device join your account.'),
-      h('p', { class: 'row' }, h('a', { class: 'button', href: ctx.signInUrl }, 'Sign in with Google')),
+      h('p', { class: 'row' }, googleButton(ctx.signInUrl)),
     ];
   } else {
     body = [h('p', { class: 'note' }, 'Sign-in is unavailable right now (offline?).')];
