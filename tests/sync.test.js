@@ -188,4 +188,18 @@ describe('device: toWire and planApply', () => {
   test('a garbled server body is ignored', () => {
     assert.deepEqual(planApply(undefined, { id: 'r1', updated: NOW, deleted: false, body: { nope: true } }, undefined), { type: 'keep' });
   });
+
+  test('a full re-download restores fields an older version dropped (stars)', () => {
+    const local = { ...recipe('r1'), updated: NOW }; // same edit time, but no star
+    const starred = remote({ starred: true });
+    assert.deepEqual(planApply(local, starred, undefined), { type: 'keep' });
+    const act = planApply(local, starred, undefined, { full: true });
+    assert.equal(act.type, 'put');
+    assert.equal(act.record.starred, true);
+  });
+
+  test('a full re-download still keeps edits made here', () => {
+    const local = { ...recipe('r1'), updated: NOW + 50, dirty: true };
+    assert.deepEqual(planApply(local, remote({ starred: true }), undefined, { full: true }), { type: 'keep' });
+  });
 });

@@ -13,6 +13,11 @@ import { normalizeRecipe } from './storage.js';
 import { CONFIG } from './config.js';
 
 const BATCH = 200;
+
+// Bump when a newer app version understands recipe fields an older one threw away (2: stars). A device
+// that last synced with an older format downloads the whole library again once and takes the server's
+// copy of every recipe it has not changed, so those fields come back.
+export const SYNC_FORMAT = 2;
 const DEBOUNCE_MS = 2000;
 const MAX_ROUNDS = 25;
 
@@ -30,15 +35,17 @@ export function toWire(rec) {
  * @param {object|undefined} local  this device's record (tombstones included)
  * @param {{id, updated, deleted, body}} remote
  * @param {number|undefined} sentUpdated  the `updated` this device sent for it in this request, if any
+ * @param {{full?: boolean}} [opts]  full: a full re-download; replace unchanged copies even when the edit
+ *                                   times match (an older app version may have dropped fields)
  * @returns {{type: 'keep'} | {type: 'remove'} | {type: 'put', record: object}}
  */
-export function planApply(local, remote, sentUpdated) {
+export function planApply(local, remote, sentUpdated, { full = false } = {}) {
   // Edited again here while the request was out (or never sent): keep it; it goes up next round.
   if (local && local.dirty && local.updated !== sentUpdated) return { type: 'keep' };
   if (remote.deleted) return local ? { type: 'remove' } : { type: 'keep' };
   const rec = normalizeRecipe(remote.body);
   if (!rec || rec.id !== remote.id) return { type: 'keep' };
-  if (local && !local.dirty && !local.deleted && local.updated === remote.updated) return { type: 'keep' };
+  if (!full && local && !local.dirty && !local.deleted && local.updated === remote.updated) return { type: 'keep' };
   return { type: 'put', record: { ...rec, updated: remote.updated } };
 }
 
@@ -71,6 +78,11 @@ function emit(ids) {
 // ---------- Syncing ----------
 
 async function syncOnce(changedIds) {
+  const full = storage.getSetting('syncFormat', 1) < SYNC_FORMAT;
+  if (full && storage.getSetting('syncCursor', 0) !== 0 && !storage.getSetting('syncFullStarted', false)) {
+    storage.setSetting('syncCursor', 0);
+    storage.setSetting('syncFullStarted', true);
+  }
   for (let round = 0; round < MAX_ROUNDS && enabled; round++) {
     const dirty = (await storage.allRecords()).filter((r) => r.dirty).slice(0, BATCH);
     const sent = new Map(dirty.map((r) => [r.id, r.updated]));
@@ -93,7 +105,7 @@ async function syncOnce(changedIds) {
 
     for (const remote of data.changes || []) {
       const local = await storage.getRecord(remote.id);
-      const act = planApply(local, remote, sent.get(remote.id));
+      const act = planApply(local, remote, sent.get(remote.id), { full });
       if (act.type === 'put') {
         await storage.putRecord(act.record);
         changedIds.add(remote.id);
@@ -103,7 +115,13 @@ async function syncOnce(changedIds) {
       }
     }
     storage.setSetting('syncCursor', data.cursor || 0);
-    if (!data.more && dirty.length < BATCH) break;
+    if (!data.more && dirty.length < BATCH) {
+      if (full) {
+        storage.setSetting('syncFormat', SYNC_FORMAT);
+        storage.setSetting('syncFullStarted', false);
+      }
+      break;
+    }
   }
 }
 
@@ -161,6 +179,7 @@ export async function start(user) {
     if (recs.length) await storage.saveMany(recs.map((r) => ({ ...r, updated: r.updated || r.created || now, dirty: true })));
     storage.setSetting('syncCursor', 0);
     storage.setSetting('syncUser', key);
+    storage.setSetting('syncFormat', SYNC_FORMAT);
   }
   enabled = true;
   wire();
@@ -184,4 +203,5 @@ export function stop() {
   clearTimeout(timer);
   storage.setSetting('syncCursor', 0);
   storage.setSetting('syncUser', null);
+  storage.setSetting('syncFullStarted', false);
 }
