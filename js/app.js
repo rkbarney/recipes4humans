@@ -518,7 +518,8 @@ function route() {
 
 // ---------- iPhone hint ----------
 
-function maybeShowIosHint() {
+/** @param {object|null|undefined} user  the signed-in user, if any (changes the hint's wording) */
+function maybeShowIosHint(user) {
   const container = document.getElementById('hint');
   if (!container) return;
   const standalone = !!navigator.standalone || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
@@ -533,7 +534,7 @@ function maybeShowIosHint() {
   ui.renderIosHint(container, () => {
     storage.setFlag(CONFIG.iosHintKey);
     container.replaceChildren();
-  });
+  }, { signedIn: !!user });
 }
 
 // ---------- Start ----------
@@ -549,7 +550,7 @@ if (importParam) {
   history.replaceState(null, '', `${location.pathname}${rest ? `?${rest}` : ''}#/`);
 }
 route().then(() => { if (importParam) importLink(importParam); });
-maybeShowIosHint();
+loadAccount().then(maybeShowIosHint);
 if (location.hash && location.hash !== '#/') loadAccount().then(startSyncFor); // home starts sync itself
 
 const shareButton = document.getElementById('share-site');

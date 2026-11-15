@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   formatNumber, formatQty, formatUnit, formatAmount, leadingAmount, numberSteps, stepNumberFor,
-  resolveMeanwhile, gatherLine, originalFor, shouldShowIosHint, groupFlags, stepsFromInput, fallbackTitle,
+  resolveMeanwhile, gatherLine, originalFor, shouldShowIosHint, iosHintText, groupFlags, stepsFromInput, fallbackTitle,
 } from '../js/ui.js';
 
 const sample = JSON.parse(readFileSync(new URL('./fixtures/golden/sample-result.json', import.meta.url), 'utf8'));
@@ -184,4 +184,11 @@ test('the homepage example can be pasted and gives what it shows', async () => {
   assert.deepEqual(r.flags, []);
   const after = EXAMPLE_AFTER.split('\n').filter((l) => /^\d+\. /.test(l)).map((l) => l.replace(/^\d+\. /, ''));
   assert.deepEqual([...r.prep, ...r.cook].map((a) => a.text), after);
+});
+
+test('the iPhone hint mentions sign-in only to people who are signed out', () => {
+  assert.match(iosHintText(false), /Sign in with Google/);
+  assert.match(iosHintText(false), /Add to Home Screen/);
+  assert.doesNotMatch(iosHintText(true), /Sign in/);
+  assert.match(iosHintText(true), /Add to Home Screen/);
 });

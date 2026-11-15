@@ -1,4 +1,4 @@
-const CACHE_NAME = 'recipes4humans-v17';
+const CACHE_NAME = 'recipes4humans-v18';
 const base = self.location.pathname.replace(/\/[^/]*$/, '/') || '/';
 const SHELL_URLS = [
   base,
@@ -9,6 +9,11 @@ const SHELL_URLS = [
   base + 'js/app.js',
   base + 'js/storage.js',
   base + 'js/sync.js',
+  base + 'js/engine/steps-duration.js',
+  base + 'js/engine/steps-sentences.js',
+  base + 'js/engine/text-utils.js',
+  base + 'js/engine/verbs.js',
+  base + 'js/engine/quantity.js',
   base + 'js/extract.js',
   base + 'js/ui.js',
   base + 'js/pdf.js',
@@ -39,20 +44,34 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+// Network first: when online, always load the latest files (and keep a copy); when the network is
+// down or too slow, fall back to the saved copy so the app still opens offline. The API is never cached.
+const NETWORK_TIMEOUT_MS = 4000;
+
 self.addEventListener('fetch', (e) => {
-  const url = new URL(e.request.url);
-  if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith('/api/')) return; // the API is always live, never cached
-  e.respondWith(
-    caches.match(e.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(e.request).then((res) => {
-        if (res.status === 200 && (e.request.mode === 'navigate' || e.request.destination === 'document')) {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
-        }
-        return res;
-      });
-    })
-  );
+  const req = e.request;
+  const url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith('/api/')) return;
+  e.respondWith(networkFirst(req));
 });
+
+async function networkFirst(req) {
+  const cache = await caches.open(CACHE_NAME);
+  const network = fetch(req).then((res) => {
+    // Redirected responses are not stored: Safari refuses to serve them for a page load.
+    if (res.ok && !res.redirected && res.type === 'basic') cache.put(req, res.clone()).catch(() => {});
+    return res;
+  });
+  const timeout = new Promise((resolve) => setTimeout(() => resolve(null), NETWORK_TIMEOUT_MS));
+  try {
+    const res = await Promise.race([network, timeout]);
+    if (res) return res;
+  } catch {
+    // offline: use the saved copy below
+  }
+  const cached = (await cache.match(req, { ignoreSearch: req.mode === 'navigate' }))
+    || (req.mode === 'navigate' ? (await cache.match(base + 'index.html')) || (await cache.match(base)) : null);
+  if (cached) return cached;
+  return network; // nothing saved: wait for the network after all (or fail as the browser would)
+}
