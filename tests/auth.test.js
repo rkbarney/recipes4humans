@@ -190,7 +190,7 @@ describe('sign-in flow', () => {
   test('a good callback creates the user and a session, and /me returns the user', async () => {
     const res = await handleCallback(callbackRequest({ token: await makeToken() }), env, { getKeys, now: NOW });
     assert.equal(res.status, 303);
-    assert.equal(res.headers.get('Location'), 'https://recipes4humans.com/?signin=ok#/library');
+    assert.equal(res.headers.get('Location'), 'https://recipes4humans.com/?signin=ok');
     const session = setCookies(res).find((c) => c.startsWith(`${SESSION_COOKIE}=`));
     assert.ok(session, 'session cookie set');
     assert.match(session, /HttpOnly; Secure; SameSite=Lax/);
@@ -215,7 +215,7 @@ describe('sign-in flow', () => {
 
   test('a state that does not match the cookie is refused', async () => {
     const res = await handleCallback(callbackRequest({ token: await makeToken(), cookieState: 'other' }), env, { getKeys, now: NOW });
-    assert.equal(res.headers.get('Location'), 'https://recipes4humans.com/?signin=failed#/library');
+    assert.equal(res.headers.get('Location'), 'https://recipes4humans.com/?signin=failed');
     assert.equal(env.DB.users.size, 0);
   });
 

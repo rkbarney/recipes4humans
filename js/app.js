@@ -15,19 +15,18 @@ const DEMO = params.get('demo') === '1';
 
 // ---------- Account ----------
 
-// What the Worker sent back after Google sign-in (?signin=ok|failed|cancelled), shown once in the library.
+// What the Worker sent back after Google sign-in (?signin=ok|failed|cancelled), shown once on the home page.
 const SIGNIN_MESSAGES = {
   ok: 'Signed in.',
   failed: 'Sign-in did not work. Please try again.',
   cancelled: '',
 };
-let pendingSigninMessage;
 if (params.has('signin')) {
   const msg = SIGNIN_MESSAGES[params.get('signin')];
   params.delete('signin');
   const rest = params.toString();
   history.replaceState(null, '', `${location.pathname}${rest ? `?${rest}` : ''}${location.hash}`);
-  pendingSigninMessage = msg;
+  if (msg) ui.toast(msg);
 }
 
 /** The signed-in user, null when signed out, or undefined when the account service cannot be reached. */
@@ -459,10 +458,6 @@ async function showLibrary() {
   const user = await loadAccount();
   if (token !== navToken) return; // the person went to another screen while we waited
   startSyncFor(user);
-  if (pendingSigninMessage !== undefined) {
-    libraryMessage = libraryMessage || pendingSigninMessage;
-    pendingSigninMessage = undefined;
-  }
   const message = libraryMessage;
   libraryMessage = '';
   ui.renderLibrary(root, {
