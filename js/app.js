@@ -217,11 +217,16 @@ async function removeRecipe(rec) {
 
 const SITE_URL = 'https://recipes4humans.com/';
 
-/** Open the system share sheet; where there is none, copy to the clipboard instead. */
+/**
+ * Open the system share sheet; where there is none, copy to the clipboard instead.
+ * The link goes inside the text rather than in share()'s separate `url` field: many share
+ * targets (Copy, WhatsApp, Gmail, and Messages on some iOS versions) keep only the text and
+ * silently drop `url`. Apps that show link previews still find the link in the text.
+ */
 async function share({ title, text, url }) {
   if (navigator.share) {
     try {
-      await navigator.share(url ? { title, text, url } : { title, text });
+      await navigator.share({ title, text: url ? `${text} ${url}` : text });
       return;
     } catch (err) {
       if (err && err.name === 'AbortError') return; // the person closed the share sheet
