@@ -220,7 +220,7 @@ export function handleLogin(request, env) {
 }
 
 export async function handleCallback(request, env, { getKeys = (force) => googleKeys({ force }), now = Date.now() } = {}) {
-  const back = (result) => `${origin(env)}/?signin=${result}#/library`;
+  const back = (result) => `${origin(env)}/?signin=${result}`;
   const clearOauth = cookie(OAUTH_COOKIE, '', { maxAge: 0, sameSite: 'None', path: '/api/auth' });
   if (request.method !== 'POST') return redirect(back('failed'), [clearOauth]);
 
