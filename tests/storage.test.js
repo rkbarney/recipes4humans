@@ -73,3 +73,16 @@ test('buildExport leaves out sync bookkeeping', () => {
   assert.equal('dirty' in out.recipes[0], false);
   assert.equal(out.recipes[0].starred, true);
 });
+
+test('normalizeRecipe keeps an http or https sourceUrl', () => {
+  assert.equal(normalizeRecipe(rec('a', { sourceUrl: 'https://example.com/pie' })).sourceUrl, 'https://example.com/pie');
+  assert.equal(normalizeRecipe(rec('a', { sourceUrl: 'http://example.com/pie' })).sourceUrl, 'http://example.com/pie');
+});
+
+test('normalizeRecipe drops a non-web sourceUrl but keeps the recipe', () => {
+  for (const bad of ['javascript:alert(1)', 'data:text/html,<script>1</script>', 'not a url', 'ftp://example.com/x', 42]) {
+    const r = normalizeRecipe(rec('a', { sourceUrl: bad }));
+    assert.ok(r, String(bad));
+    assert.equal('sourceUrl' in r, false, String(bad));
+  }
+});
