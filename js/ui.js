@@ -3,6 +3,8 @@
 // The first half of this file is pure formatting with no DOM access, so it imports under node
 // (tests/ui-format.test.js). The second half builds DOM; it touches `document` only inside functions.
 
+import { isHttpUrl } from './url.js';
+
 // ---------- Pure helpers ----------
 
 const FRACTIONS = [
@@ -680,11 +682,9 @@ export function renderRecipe(root, ctx) {
       toolsFor([flagTool(flags.byIngredient.get(ing.id))]));
   }
 
-  const source = recipe.sourceUrl || result.sourceUrl;
-  let host = '';
-  if (source) {
-    try { host = new URL(source).hostname; } catch { host = source; }
-  }
+  // Only web addresses become a link; anything else is not shown as one.
+  const source = [recipe.sourceUrl, result.sourceUrl].find(isHttpUrl);
+  const host = source ? new URL(source).hostname : '';
 
   mount(root,
     h('article', { class: 'recipe' },

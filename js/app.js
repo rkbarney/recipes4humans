@@ -100,7 +100,7 @@ sync.onSynced(({ changed, ids }) => {
   if (!id || !ids.has(id)) return;
   if (pendingSave && pendingSave.id === id) return; // an edit here is about to be saved and sent; it wins
   const y = window.scrollY;
-  showRecipe(id).then(() => window.scrollTo(0, y));
+  showRecipe(id).then((shown) => { if (shown) window.scrollTo(0, y); });
 });
 
 // ---------- Engine ----------
@@ -375,25 +375,34 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden' && pendingSave) flushSave().then(() => sync.flush());
 });
 
-async function showRecipe(id) {
+/**
+ * Show a saved recipe. Resolves true when it was drawn, false when the person had moved on by then.
+ * Buttons on the recipe pass the token of the screen they belong to, so a click followed by leaving never repaints.
+ */
+async function showRecipe(id, token = navToken) {
   releaseWakeLock();
+  // A tick still waiting to be saved would be missing from what we read below.
+  if (pendingSave && pendingSave.id === id) await flushSave();
   let rec;
   try { rec = await storage.getRecipe(id); } catch { rec = null; }
+  if (token !== navToken) return false; // the person went to another screen while we waited
   if (!rec) {
     ui.renderMessage(root, {
       title: 'Recipe not found',
       text: 'It may have been deleted, or it was saved in another browser.',
       actions: [ui.h('button', { type: 'button', onclick: () => go('#/library') }, 'Library')],
     });
-    return;
+    return true;
   }
   let result;
   try {
     result = await runEngine(rec);
   } catch (err) {
+    if (token !== navToken) return false;
     showError(err, rec);
-    return;
+    return true;
   }
+  if (token !== navToken) return false;
   const steps = Array.isArray(result.steps) ? result.steps : ui.stepsFromInput(rec);
   ui.renderRecipe(root, {
     recipe: rec,
@@ -410,22 +419,24 @@ async function showRecipe(id) {
       else delete rec.collapsed[key];
       scheduleSave(rec);
     },
-    onReset: () => {
+    onReset: async () => {
       rec.checked = {};
       rec.collapsed = {};
       scheduleSave(rec);
-      showRecipe(id);
+      await flushSave(); // write the cleared ticks first, or the re-read below would bring the old ones back
+      showRecipe(id, token);
     },
     onShare: () => shareRecipe(rec),
     onStar: async () => {
       await flushSave();
       await toggleStar(rec);
       const y = window.scrollY;
-      showRecipe(id).then(() => window.scrollTo(0, y));
+      showRecipe(id, token).then((shown) => { if (shown) window.scrollTo(0, y); });
     },
     onPrint: () => printRecipe(rec, result),
   });
   keepAwake();
+  return true;
 }
 
 /**

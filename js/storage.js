@@ -12,6 +12,7 @@
 // so it reaches other devices. listRecipes and getRecipe hide tombstones.
 
 import { CONFIG } from './config.js';
+import { isHttpUrl } from './url.js';
 
 // ---------- Pure helpers (no browser APIs; unit-tested under node) ----------
 
@@ -52,7 +53,8 @@ export function normalizeRecipe(raw, now = Date.now()) {
   if (Object.keys(collapsed).length) rec.collapsed = collapsed;
   if (hasText) rec.text = raw.text;
   else rec.parts = { ingredients: p.ingredients, steps: p.steps };
-  if (typeof raw.sourceUrl === 'string' && raw.sourceUrl) rec.sourceUrl = raw.sourceUrl;
+  // Only web links are kept: a crafted file must not smuggle in a javascript: or data: link.
+  if (isHttpUrl(raw.sourceUrl)) rec.sourceUrl = raw.sourceUrl;
   if (raw.starred === true) rec.starred = true;
   if (Number.isFinite(raw.updated)) rec.updated = raw.updated;
   return rec;
